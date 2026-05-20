@@ -1,0 +1,6 @@
+studentId,name,email,phone,department,semester,currentCGPA,attendancePercent,dateOfBirth,gender,familyIncome,parentEducation
+STU001,John Doe,john.doe@university.edu,+1234567890,Computer Science,6,7.5,85,2002-01-15,Male,50000,Graduate
+STU002,Jane Smith,jane.smith@university.edu,+1234567891,Information Technology,6,8.2,92,2002-03-22,Female,60000,Post-Graduate
+STU003,Mike Johnson,mike.j@university.edu,+1234567892,Computer Science,4,6.8,75,2003-05-10,Male,45000,Graduate
+STU004,Sarah Williams,sarah.w@university.edu,+1234567893,Electronics,6,7.9,88,2002-07-18,Female,55000,Graduate
+STU005,David Brown,david.b@university.edu,+1234567894,Mechanical,4,6.2,70,2003-02-25,Male,40000,High School

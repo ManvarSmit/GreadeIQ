@@ -1,0 +1,11 @@
+studentId,name,email,phone,dateOfBirth,gender,department,semester,currentCGPA,attendancePercent,familyIncome,parentEducation,distanceFromHome,libraryVisits,extracurricular,disciplinaryIssues,totalFees,feesPaid,feesPending,paymentStatus
+CS2024001,Rahul Kumar,rahul.kumar@university.edu,9876543210,2003-05-15,Male,Computer Science,3,8.5,92,500000,Graduate,15,45,true,0,120000,80000,40000,PARTIAL
+CS2024002,Priya Sharma,priya.sharma@university.edu,9876543211,2003-07-22,Female,Computer Science,3,6.2,68,250000,Higher Secondary,50,12,false,2,120000,120000,0,PAID
+ME2024001,Amit Patel,amit.patel@university.edu,9876543212,2003-03-10,Male,Mechanical,3,7.8,85,400000,Graduate,20,30,true,0,110000,50000,60000,PARTIAL
+EC2024001,Sneha Reddy,sneha.reddy@university.edu,9876543213,2003-09-18,Female,Electronics,3,5.8,55,150000,Secondary,75,8,false,3,115000,0,115000,OVERDUE
+CS2024003,Vijay Singh,vijay.singh@university.edu,9876543214,2003-11-05,Male,Computer Science,3,9.1,95,600000,Post Graduate,10,50,true,0,120000,120000,0,PAID
+IT2024001,Anjali Gupta,anjali.gupta@university.edu,9876543215,2003-06-30,Female,Information Technology,3,7.2,78,350000,Graduate,25,28,true,1,118000,60000,58000,PARTIAL
+ME2024002,Karan Verma,karan.verma@university.edu,9876543216,2003-04-12,Male,Mechanical,3,6.5,72,280000,Higher Secondary,45,15,false,1,110000,40000,70000,PENDING
+EC2024002,Neha Joshi,neha.joshi@university.edu,9876543217,2003-08-25,Female,Electronics,3,8.0,88,480000,Graduate,18,38,true,0,115000,115000,0,PAID
+CS2024004,Rohan Das,rohan.das@university.edu,9876543218,2003-02-14,Male,Computer Science,3,5.5,60,200000,Secondary,60,10,false,2,120000,30000,90000,OVERDUE
+IT2024002,Pooja Mehta,pooja.mehta@university.edu,9876543219,2003-10-08,Female,Information Technology,3,7.9,82,420000,Graduate,22,35,true,0,118000,100000,18000,PARTIAL

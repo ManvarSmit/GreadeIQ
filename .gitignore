@@ -1,0 +1,52 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+web_modules/
+
+# Local configuration & secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Project-specific temp directories and files
+backend/exports/*.pdf
+backend/uploads/*.csv
+backend/uploads/*.xlsx
+frontend/eslint-clean.json
+frontend/eslint-report.json
+
+# IDEs and editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Prisma generated files
+backend/generated/prisma/
+

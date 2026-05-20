@@ -1,0 +1,5 @@
+studentId,subject,examType,marksObtained,totalMarks,date
+CS2021001,Data Structures,MID_TERM,45,50,2023-09-15
+CS2021001,Algorithms,QUIZ,18,20,2023-09-20
+CS2021002,Data Structures,MID_TERM,30,50,2023-09-15
+CS2021002,Algorithms,QUIZ,12,20,2023-09-20

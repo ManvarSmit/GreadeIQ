@@ -1,0 +1,347 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Role-based User Model
+enum UserRole {
+  ADMIN
+  MENTOR
+  COUNSELOR
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(MENTOR)
+  isTemporaryPassword Boolean @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+// Student Model with Academic Fields
+model Student {
+  id                String   @id @default(uuid())
+  studentId         String   @unique // Enrollment number
+  name              String
+  email             String   @unique
+  password          String?  // Defaults to college ID (e.g. 23dcs001 from 23dcs001@charusat.edu.in)
+  phone             String?
+  dateOfBirth       DateTime?
+  gender            String?
+  
+  // Academic Information
+  department        String
+  semester          Int
+  currentCGPA       Float    @default(0.0)
+  attendancePercent Float    @default(0.0)
+  
+  // Family & Socioeconomic
+  familyIncome      Float?
+  parentEducation   String?
+  distanceFromHome  Float?   // in kilometers
+  
+  // Behavioral Data
+  libraryVisits     Int      @default(0)
+  extracurricular   Boolean  @default(false)
+  disciplinaryIssues Int     @default(0)
+  
+  // Dropout Risk
+  dropoutRisk       String   @default("UNKNOWN") // LOW, MEDIUM, HIGH, UNKNOWN
+  riskReason        String?  // Explanation for the assigned risk
+  lastAssessment    DateTime?
+  
+  // ML Predictions
+  
+  // Counselor Notes
+  counselorNotes    String?  @db.Text // Family problems, personal issues, etc.
+  
+  // AI Analysis  
+  problemCategories String?  @db.Text // JSON array of detected problem categories
+  aiAnalysis        String?  @db.Text // Gemini AI analysis summary
+  aiAnalyzedAt      DateTime? // When AI analysis was last run
+  
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("students")
+
+  // Relations
+  attendanceRecords    Attendance[]
+  assessments          Assessment[]
+  alerts               Alert[]
+  mentorAssignments    MentorAssignment[]
+  counselorAssignments CounselorAssignment[]
+  interventionTasks    InterventionTask[]
+  counselingLogs       CounselingLog[]
+  courseAttempts       CourseAttempt[]
+  feeRecord            FeeRecord?
+  quizAttempts         QuizAttempt[]
+  violations           ViolationLog[]
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date      DateTime
+  status    String   // PRESENT, ABSENT, LEAVE
+  subject   String?  // Optional subject-wise attendance
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("attendance")
+}
+
+model Assessment {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject     String
+  examType    String   // MID_TERM, FINAL, QUIZ, ASSIGNMENT
+  marksObtained Float
+  totalMarks  Float
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("assessments")
+}
+
+model Alert {
+  id        String   @id @default(uuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  riskLevel String   // HIGH, MEDIUM, LOW
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  @@map("alerts")
+}
+
+model Mentor {
+  id                   String                        @id @default(uuid())
+  name                 String
+  email                String                        @unique
+  department           String?
+  specialization       String?  // Mentor's area of expertise for AI matching
+  maxStudents          Int                           @default(10)
+  assignedStudents     MentorAssignment[]
+  counselorAssignments MentorCounselorAssignment[]
+  createdAt            DateTime                      @default(now())
+  
+  @@map("mentors")
+}
+
+model MentorAssignment {
+  id         String   @id @default(uuid())
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  mentorId   String
+  mentor     Mentor   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+  status     String   @default("ACTIVE") // ACTIVE, COMPLETED, REASSIGNED
+  
+  @@map("mentor_assignments")
+}
+
+model InterventionTask {
+  id          String    @id @default(uuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  mentorId    String?
+  title       String
+  description String
+  priority    String    // HIGH, MEDIUM, LOW
+  status      String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, ESCALATED
+  dueDate     DateTime
+  completedAt DateTime?
+  escalated   Boolean   @default(false)
+  escalatedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@map("intervention_tasks")
+}
+
+model CounselingLog {
+  id                    String    @id @default(uuid())
+  studentId             String
+  student               Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  mentorId              String?
+  counselorId           String?   // Counselor who conducted the session
+  sessionDate           DateTime
+  notes                 String    // Counseling session notes
+  actionsTaken          String?   // Actions taken during session
+  followUpRequired      Boolean   @default(false)
+  followUpDate          DateTime?
+  
+  // Risk snapshot before counseling
+  riskBefore            String    // LOW, MEDIUM, HIGH
+  riskScoreBefore       Int
+  
+  // Risk snapshot after counseling (calculated later)
+  riskAfter             String?
+  riskScoreAfter        Int?
+  
+  // Improvement metrics
+  attendanceImprovement Float?    // Percentage change
+  cgpaImprovement       Float?    // Point change
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  @@map("counseling_logs")
+}
+
+model CourseAttempt {
+  id            String   @id @default(uuid())
+  studentId     String
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseCode    String
+  attemptNumber Int
+  passFail      String   // PASS, FAIL
+  grade         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("course_attempts")
+}
+
+model FeeRecord {
+  id              String   @id @default(uuid())
+  studentId       String   @unique
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  totalFees       Float
+  feesPaid        Float
+  feesPending     Float
+  paymentStatus   String   // PAID, PARTIAL, PENDING, OVERDUE
+  lastPaymentDate DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("fee_records")
+}
+
+// Counselor Model
+model Counselor {
+  id                    String                        @id @default(uuid())
+  name                  String
+  email                 String                        @unique
+  department            String?
+  maxStudents           Int                           @default(30)
+  assignedStudents      CounselorAssignment[]
+  mentorAssignments     MentorCounselorAssignment[]
+  quizzes               Quiz[]
+  createdAt             DateTime                      @default(now())
+  updatedAt             DateTime                      @updatedAt
+  
+  @@map("counselors")
+}
+
+// Student-to-Counselor Assignment
+model CounselorAssignment {
+  id          String     @id @default(uuid())
+  studentId   String
+  student     Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  counselorId String
+  counselor   Counselor  @relation(fields: [counselorId], references: [id], onDelete: Cascade)
+  assignedAt  DateTime   @default(now())
+  assignedBy  String?    // Admin user ID who made the assignment
+  status      String     @default("ACTIVE") // ACTIVE, COMPLETED, REASSIGNED
+  
+  @@map("counselor_assignments")
+}
+
+// Mentor-to-Counselor Assignment (Oversight)
+model MentorCounselorAssignment {
+  id          String     @id @default(uuid())
+  mentorId    String
+  mentor      Mentor     @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  counselorId String
+  counselor   Counselor  @relation(fields: [counselorId], references: [id], onDelete: Cascade)
+  assignedAt  DateTime   @default(now())
+  assignedBy  String?    // Admin user ID
+  status      String     @default("ACTIVE") // ACTIVE, COMPLETED, REASSIGNED
+  
+  @@map("mentor_counselor_assignments")
+}
+
+// ----------------------------------------------------------------------
+// Quiz & Anti-Cheating System Models
+// ----------------------------------------------------------------------
+
+model Quiz {
+  id              String         @id @default(uuid())
+  counselorId     String
+  counselor       Counselor      @relation(fields: [counselorId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?
+  topics          String         // Comma-separated or JSON
+  durationMinutes Int            @default(30)
+  difficulty      String         @default("MEDIUM") // EASY, MEDIUM, HARD
+  negativeMarking Float          @default(0.0) // 0 for none, 0.25, etc.
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  questions       QuizQuestion[]
+  attempts        QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id            String   @id @default(uuid())
+  quizId        String
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question      String   @db.Text
+  options       String   @db.Text // JSON string array of options
+  correctAnswer String   // The correct option text 
+  marks         Float    @default(1.0)
+  createdAt     DateTime @default(now())
+
+  @@map("quiz_questions")
+}
+
+model QuizAttempt {
+  id              String          @id @default(uuid())
+  quizId          String
+  quiz            Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  studentId       String
+  student         Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  score           Float?
+  startTime       DateTime        @default(now())
+  submitTime      DateTime?
+  isAutoSubmitted Boolean         @default(false)
+  status          String          @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, ABORTED
+  
+  violations      ViolationLog[]
+
+  @@map("quiz_attempts")
+}
+
+model ViolationLog {
+  id            String       @id @default(uuid())
+  attemptId     String
+  attempt       QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  violationType String       // TAB_SWITCH, BLUR_FOCUS
+  timestamp     DateTime     @default(now())
+
+  @@map("violation_logs")
+}

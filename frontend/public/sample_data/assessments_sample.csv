@@ -1,0 +1,10 @@
+studentId,assessmentType,subject,totalMarks,marksObtained,date
+STU001,MID_TERM,Data Structures,100,75,2024-01-20
+STU001,ASSIGNMENT,Algorithms,50,45,2024-01-25
+STU001,QUIZ,Database Systems,20,18,2024-01-28
+STU002,MID_TERM,Data Structures,100,82,2024-01-20
+STU002,ASSIGNMENT,Algorithms,50,40,2024-01-25
+STU002,QUIZ,Database Systems,20,15,2024-01-28
+STU003,MID_TERM,Data Structures,100,55,2024-01-20
+STU003,ASSIGNMENT,Algorithms,50,30,2024-01-25
+STU003,QUIZ,Database Systems,20,12,2024-01-28

@@ -1,0 +1,11 @@
+studentId,name,email,phone,dateOfBirth,gender,department,semester,currentCGPA,attendancePercent,libraryVisits,extracurricular,disciplinaryIssues,familyIncome,parentEducation,distanceFromHome,totalFees,feesPaid,feesPending,paymentStatus
+STU001,Rahul Sharma,rahul.sharma@university.edu,9876543210,2005-03-15,Male,Computer Science,5,8.5,92,15,true,0,800000,Graduate,5,150000,150000,0,PAID
+STU002,Priya Patel,priya.patel@university.edu,9876543211,2005-07-22,Female,Electronics,4,7.2,78,8,true,0,600000,Graduate,12,140000,100000,40000,PARTIAL
+STU003,Amit Kumar,amit.kumar@university.edu,9876543212,2004-11-08,Male,Mechanical,6,5.8,58,3,false,1,350000,High School,25,130000,50000,80000,PARTIAL
+STU004,Sneha Reddy,sneha.reddy@university.edu,9876543213,2005-01-30,Female,Civil,3,9.1,95,20,true,0,1200000,Post Graduate,3,160000,160000,0,PAID
+STU005,Vikram Singh,vikram.singh@university.edu,9876543214,2004-09-12,Male,Computer Science,5,4.5,42,1,false,2,250000,High School,45,150000,30000,120000,PENDING
+STU006,Ananya Gupta,ananya.gupta@university.edu,9876543215,2005-05-18,Female,Information Technology,4,7.8,85,12,true,0,550000,Graduate,8,145000,145000,0,PAID
+STU007,Rohan Mehta,rohan.mehta@university.edu,9876543216,2004-12-25,Male,Electronics,5,6.2,65,5,false,1,400000,Graduate,15,140000,80000,60000,PARTIAL
+STU008,Kavya Nair,kavya.nair@university.edu,9876543217,2005-08-03,Female,Computer Science,3,8.9,91,18,true,0,900000,Post Graduate,7,150000,150000,0,PAID
+STU009,Arjun Verma,arjun.verma@university.edu,9876543218,2004-06-14,Male,Mechanical,6,5.2,48,2,false,3,280000,Primary,35,130000,20000,110000,PENDING
+STU010,Divya Sharma,divya.sharma@university.edu,9876543219,2005-02-28,Female,Civil,4,7.5,80,10,true,0,650000,Graduate,10,160000,120000,40000,PARTIAL

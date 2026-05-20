@@ -1,0 +1,45 @@
+{
+  "name": "student-dropout-prevention-backend",
+  "version": "1.0.0",
+  "description": "Backend for AI-based Student Dropout Prevention System",
+  "main": "src/server.js",
+  "type": "module",
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "keywords": [
+    "student",
+    "dropout",
+    "prevention",
+    "ai"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^5.10.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "csv-parser": "^3.2.0",
+    "dotenv": "^17.2.4",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.1",
+    "fast-csv": "^5.0.5",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
+    "nodemailer": "^8.0.0",
+    "pdfkit": "^0.17.2",
+    "prisma": "^5.10.0",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
