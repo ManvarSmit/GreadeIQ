@@ -260,6 +260,46 @@ export const bulkUploadStudents = async (req, res) => {
       });
     }
 
+    // Helper to look up keys case-insensitively and with flexible naming conventions
+    const getVal = (row, ...keys) => {
+      for (const key of keys) {
+        if (row[key] !== undefined && row[key] !== null) return row[key];
+        
+        const normalizedKey = key.toLowerCase().replace(/[\s_\-%]/g, '');
+        for (const rowKey of Object.keys(row)) {
+          const normalizedRowKey = rowKey.toLowerCase().replace(/[\s_\-%]/g, '');
+          if (normalizedKey === normalizedRowKey && row[rowKey] !== undefined && row[rowKey] !== null) {
+            return row[rowKey];
+          }
+        }
+      }
+      return undefined;
+    };
+
+    const parseDateSafe = (val) => {
+      if (val === undefined || val === null) return null;
+      const str = String(val).trim();
+      if (str === '') return null;
+      const d = new Date(str);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const parseFloatSafe = (val, defaultVal = null) => {
+      if (val === undefined || val === null) return defaultVal;
+      const str = String(val).trim();
+      if (str === '') return defaultVal;
+      const parsed = parseFloat(str);
+      return isNaN(parsed) ? defaultVal : parsed;
+    };
+
+    const parseIntSafe = (val, defaultVal = 0) => {
+      if (val === undefined || val === null) return defaultVal;
+      const str = String(val).trim();
+      if (str === '') return defaultVal;
+      const parsed = parseInt(str, 10);
+      return isNaN(parsed) ? defaultVal : parsed;
+    };
+
     const students = [];
     const errors = [];
     let lineNumber = 1;
@@ -275,30 +315,29 @@ export const bulkUploadStudents = async (req, res) => {
           // Validate and parse row data
           // Ensure keys match your CSV headers exactly
           const student = {
-            studentId: row.studentId?.trim() || row['Student ID']?.trim() || row['student_id']?.trim(),
-            name: row.name?.trim() || row['Name']?.trim(),
-            email: row.email?.trim() || row['Email']?.trim(),
-            phone: row.phone?.trim() || null,
-            // Handle various date formats if needed
-            dateOfBirth: row.dateOfBirth ? new Date(row.dateOfBirth) : null,
-            gender: row.gender?.trim() || null,
-            department: row.department?.trim(),
-            semester: row.semester ? parseInt(row.semester) : 1,
-            currentCGPA: parseFloat(row.currentCGPA) || 0.0,
-            attendancePercent: parseFloat(row.attendancePercent) || 0.0,
-            familyIncome: row.familyIncome ? parseFloat(row.familyIncome) : null,
-            parentEducation: row.parentEducation?.trim() || null,
-            distanceFromHome: row.distanceFromHome ? parseFloat(row.distanceFromHome) : null,
-            libraryVisits: parseInt(row.libraryVisits) || 0,
-            extracurricular: String(row.extracurricular).toLowerCase() === 'true',
-            disciplinaryIssues: parseInt(row.disciplinaryIssues) || 0,
-            dropoutRisk: row.dropoutRisk?.trim() || 'UNKNOWN',
+            studentId: getVal(row, 'studentId', 'Student ID', 'student_id')?.trim(),
+            name: getVal(row, 'name', 'Name')?.trim(),
+            email: getVal(row, 'email', 'Email')?.trim(),
+            phone: getVal(row, 'phone', 'Phone')?.trim() || null,
+            dateOfBirth: parseDateSafe(getVal(row, 'dateOfBirth', 'Date of Birth', 'date_of_birth')),
+            gender: getVal(row, 'gender', 'Gender')?.trim() || null,
+            department: getVal(row, 'department', 'Department')?.trim(),
+            semester: parseIntSafe(getVal(row, 'semester', 'Semester'), 1),
+            currentCGPA: parseFloatSafe(getVal(row, 'currentCGPA', 'CGPA', 'Current CGPA', 'current_cgpa'), 0.0),
+            attendancePercent: parseFloatSafe(getVal(row, 'attendancePercent', 'Attendance %', 'attendance_percent', 'attendance'), 0.0),
+            familyIncome: parseFloatSafe(getVal(row, 'familyIncome', 'Family Income', 'family_income'), null),
+            parentEducation: getVal(row, 'parentEducation', 'Parent Education', 'parent_education')?.trim() || null,
+            distanceFromHome: parseFloatSafe(getVal(row, 'distanceFromHome', 'Distance from Home', 'distance_from_home'), null),
+            libraryVisits: parseIntSafe(getVal(row, 'libraryVisits', 'Library Visits', 'library_visits'), 0),
+            extracurricular: String(getVal(row, 'extracurricular', 'Extracurricular') || '').toLowerCase() === 'true',
+            disciplinaryIssues: parseIntSafe(getVal(row, 'disciplinaryIssues', 'Disciplinary Issues', 'disciplinary_issues'), 0),
+            dropoutRisk: getVal(row, 'dropoutRisk', 'Dropout Risk', 'dropout_risk')?.trim() || 'UNKNOWN',
             // Fee data (parsed separately for FeeRecord creation)
             _feeData: {
-              totalFees: row.totalFees ? parseFloat(row.totalFees) : null,
-              feesPaid: row.feesPaid ? parseFloat(row.feesPaid) : null,
-              feesPending: row.feesPending ? parseFloat(row.feesPending) : null,
-              paymentStatus: row.paymentStatus?.trim() || 'PENDING'
+              totalFees: parseFloatSafe(getVal(row, 'totalFees', 'Total Fees', 'total_fees'), null),
+              feesPaid: parseFloatSafe(getVal(row, 'feesPaid', 'Fees Paid', 'fees_paid'), null),
+              feesPending: parseFloatSafe(getVal(row, 'feesPending', 'Fees Pending', 'fees_pending'), null),
+              paymentStatus: getVal(row, 'paymentStatus', 'Payment Status', 'payment_status')?.trim() || 'PENDING'
             }
           };
 

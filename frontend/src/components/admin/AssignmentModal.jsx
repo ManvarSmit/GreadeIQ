@@ -181,14 +181,14 @@ const AssignmentModal = ({
                         <div className="flex bg-dark-surface p-1 rounded-lg mr-4">
                             <button
                                 onClick={() => setAssignmentType('student-counselor')}
-                                className={`p-1.5 rounded-md transition-all ${assignmentType === 'student-counselor' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-dark-muted'}`}
+                                className={`p-1.5 rounded-md transition-all ${assignmentType === 'student-counselor' ? 'bg-indigo-600 text-white shadow-sm' : 'text-dark-muted hover:text-white hover:bg-white/5'}`}
                                 title="Assign Students"
                             >
                                 <UserPlus size={18} />
                             </button>
                             <button
                                 onClick={() => setAssignmentType('mentor-counselor')}
-                                className={`p-1.5 rounded-md transition-all ${assignmentType === 'mentor-counselor' ? 'bg-white shadow-sm text-purple-600' : 'text-slate-400 hover:text-dark-muted'}`}
+                                className={`p-1.5 rounded-md transition-all ${assignmentType === 'mentor-counselor' ? 'bg-purple-600 text-white shadow-sm' : 'text-dark-muted hover:text-white hover:bg-white/5'}`}
                                 title="Assign Mentor"
                             >
                                 <UserCog size={18} />
@@ -235,14 +235,14 @@ const AssignmentModal = ({
                                     <div className="flex bg-dark-surface p-1 rounded-lg">
                                         <button
                                             onClick={() => setAssignmentMode('manual')}
-                                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${assignmentMode === 'manual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-dark-muted hover:text-dark-muted'
+                                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${assignmentMode === 'manual' ? 'bg-indigo-600 text-white shadow-sm' : 'text-dark-muted hover:text-white hover:bg-white/5'
                                                 }`}
                                         >
                                             Manual
                                         </button>
                                         <button
                                             onClick={() => setAssignmentMode('range')}
-                                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${assignmentMode === 'range' ? 'bg-white text-indigo-600 shadow-sm' : 'text-dark-muted hover:text-dark-muted'
+                                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${assignmentMode === 'range' ? 'bg-indigo-600 text-white shadow-sm' : 'text-dark-muted hover:text-white hover:bg-white/5'
                                                 }`}
                                         >
                                             Range
@@ -252,7 +252,7 @@ const AssignmentModal = ({
 
                                 {/* AI Assignment for Single Student */}
                                 {assignmentType === 'student-counselor' && selectedStudents.length === 1 && (
-                                    <div className="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100">
+                                    <div className="bg-indigo-950/20 rounded-xl p-4 border border-indigo-500/20">
                                         <AIAssignment
                                             studentId={selectedStudents[0]}
                                             studentName={getAvailableStudents().find(s => s.id === selectedStudents[0])?.name}
@@ -307,7 +307,7 @@ const AssignmentModal = ({
                                                     max={getAvailableStudents().length}
                                                     value={rangeStart}
                                                     onChange={(e) => setRangeStart(parseInt(e.target.value) || 1)}
-                                                    className="w-full px-3 py-2 border border-dark-border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                    className="w-full px-3 py-2 bg-dark-bg border border-dark-border text-white rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                                 />
                                             </div>
                                             <div>
@@ -318,7 +318,7 @@ const AssignmentModal = ({
                                                     max={getAvailableStudents().length}
                                                     value={rangeEnd}
                                                     onChange={(e) => setRangeEnd(parseInt(e.target.value) || 1)}
-                                                    className="w-full px-3 py-2 border border-dark-border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                    className="w-full px-3 py-2 bg-dark-bg border border-dark-border text-white rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                                 />
                                             </div>
                                         </div>
@@ -357,7 +357,7 @@ const AssignmentModal = ({
                                                 placeholder="Search students..."
                                                 value={searchTerm}
                                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                                className="w-full pl-9 pr-4 py-2 text-sm border border-dark-border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                className="w-full pl-9 pr-4 py-2 text-sm bg-dark-bg border border-dark-border text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                             />
                                         </div>
 
@@ -372,16 +372,16 @@ const AssignmentModal = ({
                                                     getAvailableStudents().map(student => (
                                                         <motion.div
                                                             key={student.id}
-                                                            whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.8)' }}
-                                                            whileTap={{ scale: 0.99 }}
+                                                            whileHover={{ scale: 1.005, backgroundColor: 'rgba(255,255,255,0.02)' }}
+                                                            whileTap={{ scale: 0.995 }}
                                                             onClick={() => toggleStudentSelection(student.id)}
                                                             className={`p-3 rounded-lg cursor-pointer border transition-all flex items-center justify-between group ${selectedStudents.includes(student.id)
-                                                                ? 'bg-indigo-50 border-indigo-200 shadow-sm'
-                                                                : 'bg-white border-transparent hover:border-dark-border hover:shadow-sm'
+                                                                ? 'bg-primary-500/10 border-primary-500/30 shadow-sm'
+                                                                : 'bg-dark-surface border-dark-border/40 hover:border-dark-border/80'
                                                                 }`}
                                                         >
                                                             <div>
-                                                                <p className={`text-sm font-medium ${selectedStudents.includes(student.id) ? 'text-indigo-900' : 'text-dark-muted'}`}>
+                                                                <p className={`text-sm font-medium ${selectedStudents.includes(student.id) ? 'text-primary-400' : 'text-white'}`}>
                                                                     {student.name}
                                                                 </p>
                                                                 <div className="flex items-center gap-2 mt-0.5">
@@ -391,7 +391,7 @@ const AssignmentModal = ({
                                                                 </div>
                                                             </div>
                                                             {selectedStudents.includes(student.id) && (
-                                                                <div className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                                                                <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center shadow-lg shadow-primary-500/30">
                                                                     <Check size={14} className="text-white" />
                                                                 </div>
                                                             )}

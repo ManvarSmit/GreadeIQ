@@ -3,18 +3,44 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Plus, FileText, BookOpen, Target } from 'lucide-react';
 import Button from '../ui/Button';
+import { studentAPI } from '../../services/api';
 
 const WelcomeBanner = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [greeting, setGreeting] = useState('');
+    const [highRiskCount, setHighRiskCount] = useState(0);
 
     useEffect(() => {
         const hour = new Date().getHours();
         if (hour < 12) setGreeting('Good Morning');
         else if (hour < 18) setGreeting('Good Afternoon');
         else setGreeting('Good Evening');
-    }, []);
+
+        // Fetch high-risk alerts count dynamically if user is admin/mentor/counselor
+        if (user && user.role !== 'STUDENT') {
+            const fetchStats = async () => {
+                try {
+                    const response = await studentAPI.getStats();
+                    const stats = response.data || response;
+                    if (stats && stats.byDropoutRisk) {
+                        const highRiskEntry = stats.byDropoutRisk.find(
+                            item => item.dropoutRisk === 'HIGH'
+                        );
+                        const count = highRiskEntry
+                            ? (typeof highRiskEntry._count === 'object'
+                                ? (highRiskEntry._count.id || highRiskEntry._count.studentId || 0)
+                                : (highRiskEntry._count || 0))
+                            : 0;
+                        setHighRiskCount(count);
+                    }
+                } catch (error) {
+                    console.error('Error fetching dynamic high-risk stats:', error);
+                }
+            };
+            fetchStats();
+        }
+    }, [user]);
 
     return (
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-dark-surface to-primary-900/40 text-white shadow-xl mb-8 border border-primary-500/20 glass-panel">
@@ -38,7 +64,7 @@ const WelcomeBanner = () => {
                         </p>
                     ) : (
                         <p className="text-dark-muted max-w-xl text-lg">
-                            Here's what's happening with your students today. You have <span className="font-semibold text-danger-400">3 high-risk</span> alerts requiring attention.
+                            Here's what's happening with your students today. You have <span className="font-semibold text-danger-400">{highRiskCount} high-risk</span> alert{highRiskCount === 1 ? '' : 's'} requiring attention.
                         </p>
                     )}
                 </div>

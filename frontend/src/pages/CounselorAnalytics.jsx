@@ -11,6 +11,7 @@ import {
     TrendingUp, AlertTriangle, Users, Award, BookOpen, Target, Search
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const CounselorAnalytics = () => {
     const [students, setStudents] = useState([]);
@@ -297,15 +298,15 @@ const CounselorAnalytics = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5 }}
                         >
-                            <div className="bg-white/80 backdrop-blur rounded-2xl border border-rose-100 shadow-sm overflow-hidden">
-                                <div className="p-6 border-b border-rose-100 bg-rose-50/30 flex items-center justify-between">
+                            <div className="bg-dark-surface/80 backdrop-blur rounded-2xl border border-rose-950/40 shadow-sm overflow-hidden">
+                                <div className="p-6 border-b border-rose-950/40 bg-rose-950/10 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-rose-100 rounded-lg text-rose-600">
+                                        <div className="p-2 bg-rose-950/30 rounded-lg text-rose-500">
                                             <AlertTriangle size={20} />
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-white">Priority Attention Required</h3>
-                                            <p className="text-sm text-rose-600/80">These students are flagged as High Risk</p>
+                                            <p className="text-sm text-dark-muted">These students are flagged as High Risk</p>
                                         </div>
                                     </div>
                                     <span className="px-3 py-1 bg-danger-500/10 text-danger-400 text-sm font-bold rounded-full shadow-md border border-danger-500/20">
@@ -323,24 +324,24 @@ const CounselorAnalytics = () => {
                                                 <th className="text-center py-4 px-6 text-sm font-semibold text-dark-muted">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100">
+                                        <tbody className="divide-y divide-dark-border">
                                             {students
                                                 .filter(s => s.dropoutRisk === 'HIGH')
                                                 .map((student) => (
                                                     <tr key={student.id} className="hover:bg-dark-bg/80 transition-colors group">
                                                         <td className="py-4 px-6">
                                                             <div>
-                                                                <p className="font-semibold text-white group-hover:text-indigo-600 transition-colors">{student.name}</p>
+                                                                <p className="font-semibold text-white group-hover:text-indigo-400 transition-colors">{student.name}</p>
                                                                 <p className="text-xs text-secondary-500 font-mono">{student.studentId}</p>
                                                             </div>
                                                         </td>
                                                         <td className="py-4 px-6 text-center">
-                                                            <span className={`inline-block px-2 py-1 rounded bg-dark-surface text-sm font-bold ${student.attendancePercent < 75 ? 'text-rose-600 bg-rose-50' : 'text-dark-muted'}`}>
+                                                            <span className={`inline-block px-2 py-1 rounded bg-dark-surface text-sm font-bold ${student.attendancePercent < 75 ? 'text-rose-400 bg-rose-950/30' : 'text-dark-muted'}`}>
                                                                 {student.attendancePercent || 0}%
                                                             </span>
                                                         </td>
                                                         <td className="py-4 px-6 text-center">
-                                                            <span className={`inline-block px-2 py-1 rounded bg-dark-surface text-sm font-bold ${student.currentCGPA < 6 ? 'text-rose-600 bg-rose-50' : 'text-dark-muted'}`}>
+                                                            <span className={`inline-block px-2 py-1 rounded bg-dark-surface text-sm font-bold ${student.currentCGPA < 6 ? 'text-rose-400 bg-rose-950/30' : 'text-dark-muted'}`}>
                                                                 {student.currentCGPA?.toFixed(2) || '0.00'}
                                                             </span>
                                                         </td>

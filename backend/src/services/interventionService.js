@@ -26,8 +26,10 @@ export const autoAssignMentor = async (studentId) => {
         name: true,
         counselorNotes: true,
         problemCategories: true,
-        counselor: true, // Need to check if counselor exists
-        mentorAssignment: {
+        counselorAssignments: {
+          where: { status: 'ACTIVE' }
+        },
+        mentorAssignments: {
           where: { status: 'ACTIVE' }
         }
       }
@@ -36,12 +38,13 @@ export const autoAssignMentor = async (studentId) => {
     if (!student) return null;
 
     // Check pre-requisites based on user rules
-    if (!student.counselor) {
+    const hasActiveCounselor = student.counselorAssignments && student.counselorAssignments.length > 0;
+    if (!hasActiveCounselor) {
       console.warn(`Student ${student.name} has no counselor, skipping auto-assign`);
       return null;
     }
 
-    if (student.mentorAssignment && student.mentorAssignment.length > 0) {
+    if (student.mentorAssignments && student.mentorAssignments.length > 0) {
       console.warn(`Student ${student.name} already has a mentor`);
       return null;
     }

@@ -7,9 +7,9 @@ import Button from '../ui/Button';
 
 /** Light modal fields: app body uses light text on dark bg; inputs must not inherit that onto white backgrounds. */
 const inputBase =
-    'w-full px-3 py-2 rounded-lg border bg-white text-slate-900 placeholder:text-slate-400 shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow';
-const inputNormal = `${inputBase} border-slate-300`;
-const inputErr = (hasError) => (hasError ? `${inputBase} border-red-500` : inputNormal);
+    'w-full px-3.5 py-2.5 rounded-xl border bg-dark-bg text-white placeholder:text-dark-muted shadow-inner focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:bg-dark-surface disabled:bg-dark-bg/50 disabled:text-dark-muted disabled:cursor-not-allowed transition-all duration-200 text-sm';
+const inputNormal = `${inputBase} border-dark-border`;
+const inputErr = (hasError) => (hasError ? `${inputBase} border-rose-500 ring-1 ring-rose-500/20` : inputNormal);
 
 const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
     const { success, error: toastError } = useToast();
@@ -181,25 +181,25 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                 if (e.target === e.currentTarget && !loading) handleClose();
             }}
         >
-            <div className="bg-white text-slate-900 rounded-xl max-w-4xl w-full my-8 shadow-2xl ring-1 ring-slate-200/80">
+            <div className="bg-dark-surface text-white rounded-2xl max-w-4xl w-full my-8 shadow-2xl border border-dark-border overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-slate-50/80 rounded-t-xl">
-                    <h2 id="add-student-modal-title" className="text-2xl font-bold text-slate-900">
+                <div className="flex items-center justify-between p-6 border-b border-dark-border bg-dark-bg/40 rounded-t-2xl">
+                    <h2 id="add-student-modal-title" className="text-2xl font-bold text-white tracking-wide">
                         Add New Student
                     </h2>
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="p-2 hover:bg-slate-200 rounded-lg transition-colors text-slate-600"
+                        className="p-2 hover:bg-white/5 rounded-xl transition-colors text-dark-muted hover:text-white"
                         disabled={loading}
                         aria-label="Close"
                     >
-                        <X size={24} />
+                        <X size={22} />
                     </button>
                 </div>
 
                 {/* Section Tabs */}
-                <div className="flex gap-2 p-4 border-b border-slate-200 overflow-x-auto bg-white">
+                <div className="flex gap-2 p-4 border-b border-dark-border overflow-x-auto bg-dark-surface scrollbar-none">
                     {sections.map(section => {
                         const Icon = section.icon;
                         return (
@@ -207,9 +207,9 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                 type="button"
                                 key={section.id}
                                 onClick={() => setActiveSection(section.id)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors whitespace-nowrap ${activeSection === section.id
-                                        ? 'bg-indigo-600 text-white shadow-md'
-                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${activeSection === section.id
+                                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                                        : 'bg-dark-bg text-dark-muted border border-dark-border hover:text-white hover:bg-white/5'
                                     }`}
                             >
                                 <Icon size={16} />
@@ -221,14 +221,14 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
 
                 {/* Form */}
                 <form onSubmit={handleSubmit}>
-                    <div className="p-6 max-h-[60vh] overflow-y-auto">
+                    <div className="p-6 max-h-[60vh] overflow-y-auto bg-dark-surface/40 scrollbar-thin">
                         {/* Personal Information */}
                         {activeSection === 'personal' && (
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">
-                                            Student ID <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">
+                                            Student ID <span className="text-rose-500">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -238,12 +238,12 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                             className={inputErr(errors.studentId)}
                                             placeholder="e.g., STU001"
                                         />
-                                        {errors.studentId && <p className="text-red-500 text-xs mt-1">{errors.studentId}</p>}
+                                        {errors.studentId && <p className="text-rose-400 text-xs mt-1">{errors.studentId}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">
-                                            Full Name <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">
+                                            Full Name <span className="text-rose-500">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -253,12 +253,12 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                             className={inputErr(errors.name)}
                                             placeholder="e.g., John Doe"
                                         />
-                                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                                        {errors.name && <p className="text-rose-400 text-xs mt-1">{errors.name}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">
-                                            Email <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">
+                                            Email <span className="text-rose-500">*</span>
                                         </label>
                                         <input
                                             type="email"
@@ -268,11 +268,11 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                             className={inputErr(errors.email)}
                                             placeholder="e.g., john@university.edu"
                                         />
-                                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                                        {errors.email && <p className="text-rose-400 text-xs mt-1">{errors.email}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Phone</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Phone</label>
                                         <input
                                             type="tel"
                                             name="phone"
@@ -284,7 +284,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Date of Birth</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Date of Birth</label>
                                         <input
                                             type="date"
                                             name="dateOfBirth"
@@ -295,12 +295,12 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Gender</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Gender</label>
                                         <select
                                             name="gender"
                                             value={formData.gender}
                                             onChange={handleChange}
-                                            className={inputNormal}
+                                            className={`${inputNormal} cursor-pointer`}
                                         >
                                             <option value="">Select Gender</option>
                                             <option value="Male">Male</option>
@@ -318,14 +318,14 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">
-                                            Department <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">
+                                            Department <span className="text-rose-500">*</span>
                                         </label>
                                         <select
                                             name="department"
                                             value={formData.department}
                                             onChange={handleChange}
-                                            className={inputErr(errors.department)}
+                                            className={`${inputErr(errors.department)} cursor-pointer`}
                                         >
                                             <option value="">Select Department</option>
                                             <option value="Computer Science">Computer Science</option>
@@ -335,29 +335,29 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                             <option value="Electrical">Electrical</option>
                                             <option value="Information Technology">Information Technology</option>
                                         </select>
-                                        {errors.department && <p className="text-red-500 text-xs mt-1">{errors.department}</p>}
+                                        {errors.department && <p className="text-rose-400 text-xs mt-1">{errors.department}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">
-                                            Semester <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">
+                                            Semester <span className="text-rose-500">*</span>
                                         </label>
                                         <select
                                             name="semester"
                                             value={formData.semester}
                                             onChange={handleChange}
-                                            className={inputErr(errors.semester)}
+                                            className={`${inputErr(errors.semester)} cursor-pointer`}
                                         >
                                             <option value="">Select Semester</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
                                                 <option key={sem} value={sem}>{sem}</option>
                                             ))}
                                         </select>
-                                        {errors.semester && <p className="text-red-500 text-xs mt-1">{errors.semester}</p>}
+                                        {errors.semester && <p className="text-rose-400 text-xs mt-1">{errors.semester}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Current CGPA</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Current CGPA</label>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -369,11 +369,11 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                             min="0"
                                             max="10"
                                         />
-                                        {errors.currentCGPA && <p className="text-red-500 text-xs mt-1">{errors.currentCGPA}</p>}
+                                        {errors.currentCGPA && <p className="text-rose-400 text-xs mt-1">{errors.currentCGPA}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Attendance %</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Attendance %</label>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -385,7 +385,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                             min="0"
                                             max="100"
                                         />
-                                        {errors.attendancePercent && <p className="text-red-500 text-xs mt-1">{errors.attendancePercent}</p>}
+                                        {errors.attendancePercent && <p className="text-rose-400 text-xs mt-1">{errors.attendancePercent}</p>}
                                     </div>
                                 </div>
                             </div>
@@ -396,7 +396,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Family Income (Annual)</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Family Income (Annual)</label>
                                         <input
                                             type="number"
                                             name="familyIncome"
@@ -408,12 +408,12 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Parent Education</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Parent Education</label>
                                         <select
                                             name="parentEducation"
                                             value={formData.parentEducation}
                                             onChange={handleChange}
-                                            className={inputNormal}
+                                            className={`${inputNormal} cursor-pointer`}
                                         >
                                             <option value="">Select Education Level</option>
                                             <option value="No Formal Education">No Formal Education</option>
@@ -426,7 +426,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Distance from Home (km)</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Distance from Home (km)</label>
                                         <input
                                             type="number"
                                             step="0.1"
@@ -446,7 +446,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Library Visits (per month)</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Library Visits (per month)</label>
                                         <input
                                             type="number"
                                             name="libraryVisits"
@@ -459,7 +459,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Disciplinary Issues</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Disciplinary Issues</label>
                                         <input
                                             type="number"
                                             name="disciplinaryIssues"
@@ -471,16 +471,16 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                         />
                                     </div>
 
-                                    <div className="md:col-span-2">
-                                        <label className="flex items-center gap-2 cursor-pointer">
+                                    <div className="md:col-span-2 mt-2">
+                                        <label className="flex items-center gap-3.5 cursor-pointer select-none">
                                             <input
                                                 type="checkbox"
                                                 name="extracurricular"
                                                 checked={formData.extracurricular}
                                                 onChange={handleChange}
-                                                className="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
+                                                className="w-4 h-4 text-indigo-600 bg-dark-bg border-dark-border rounded focus:ring-indigo-500 cursor-pointer"
                                             />
-                                            <span className="text-sm font-medium text-slate-700">Participates in Extracurricular Activities</span>
+                                            <span className="text-sm font-medium text-dark-text">Participates in Extracurricular Activities</span>
                                         </label>
                                     </div>
                                 </div>
@@ -492,7 +492,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Total Fees</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Total Fees</label>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -505,7 +505,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Fees Paid</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Fees Paid</label>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -518,7 +518,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Fees Pending</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Fees Pending</label>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -531,12 +531,12 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-600 mb-1">Payment Status</label>
+                                        <label className="block text-sm font-medium text-dark-muted mb-1">Payment Status</label>
                                         <select
                                             name="paymentStatus"
                                             value={formData.paymentStatus}
                                             onChange={handleChange}
-                                            className={inputNormal}
+                                            className={`${inputNormal} cursor-pointer`}
                                         >
                                             <option value="PAID">Paid</option>
                                             <option value="PARTIAL">Partial</option>
@@ -550,9 +550,9 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between p-6 border-t border-slate-200 bg-slate-50 rounded-b-xl">
-                        <p className="text-sm text-slate-600">
-                            <span className="text-red-500">*</span> Required fields
+                    <div className="flex items-center justify-between p-6 border-t border-dark-border bg-dark-bg/40 rounded-b-2xl">
+                        <p className="text-sm text-dark-muted">
+                            <span className="text-rose-500">*</span> Required fields
                         </p>
                         <div className="flex gap-3">
                             <Button

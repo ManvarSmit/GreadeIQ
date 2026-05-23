@@ -4,6 +4,7 @@ import Card from '../components/ui/Card';
 import ExportButton from '../components/ui/ExportButton';
 import { studentAPI, analyticsAPI } from '../services/api';
 import { FileText, Users, AlertTriangle, PieChart, CheckCircle, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Reports = () => {
   const [students, setStudents] = useState([]);
@@ -16,8 +17,8 @@ const Reports = () => {
           studentAPI.getAll({ limit: 10000 }),
           analyticsAPI.getDepartmentRisk()
         ]);
-        setStudents(studentsRes.data?.data || []);
-        setDepartmentData(deptRes.data?.data?.departments || []);
+        setStudents(studentsRes.data || []);
+        setDepartmentData(deptRes.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -126,36 +127,36 @@ const Reports = () => {
             transition={{ delay: 0.5 }}
           >
             <h2 className="text-xl font-bold text-white mb-6">Department Summary</h2>
-            <div className="bg-white/80 backdrop-blur rounded-2xl border border-dark-border shadow-sm overflow-hidden">
+            <div className="bg-dark-surface/80 backdrop-blur rounded-2xl border border-dark-border shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-dark-bg/50 border-b border-dark-border">
                       <th className="text-left py-4 px-6 text-sm font-semibold text-dark-muted">Department</th>
                       <th className="text-center py-4 px-6 text-sm font-semibold text-dark-muted">Total Students</th>
-                      <th className="text-center py-4 px-6 text-sm font-semibold text-rose-600">High Risk</th>
-                      <th className="text-center py-4 px-6 text-sm font-semibold text-amber-600">Medium Risk</th>
-                      <th className="text-center py-4 px-6 text-sm font-semibold text-emerald-600">Low Risk</th>
+                      <th className="text-center py-4 px-6 text-sm font-semibold text-rose-500">High Risk</th>
+                      <th className="text-center py-4 px-6 text-sm font-semibold text-amber-500">Medium Risk</th>
+                      <th className="text-center py-4 px-6 text-sm font-semibold text-emerald-500">Low Risk</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-dark-border">
                     {departmentData.map((dept, index) => (
                       <tr key={index} className="hover:bg-dark-bg/80 transition-colors">
                         <td className="py-4 px-6 font-medium text-white">{dept.department}</td>
                         <td className="py-4 px-6 text-center text-dark-muted font-medium">{dept.total}</td>
                         <td className="py-4 px-6 text-center">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100">
-                            {dept.highRisk}
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                            {dept.high}
                           </span>
                         </td>
                         <td className="py-4 px-6 text-center">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
-                            {dept.mediumRisk}
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            {dept.medium}
                           </span>
                         </td>
                         <td className="py-4 px-6 text-center">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                            {dept.lowRisk}
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            {dept.low}
                           </span>
                         </td>
                       </tr>

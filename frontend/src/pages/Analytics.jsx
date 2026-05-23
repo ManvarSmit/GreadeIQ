@@ -11,7 +11,7 @@ import SemesterTrendChart from '../components/analytics/SemesterTrendChart';
 import SubjectHeatmap from '../components/analytics/SubjectHeatmap';
 
 const Analytics = () => {
-  const { error: toastError } = useToast();
+  const { success, info, error: toastError } = useToast();
 
   // Data states
   const [departmentRisk, setDepartmentRisk] = useState([]);
@@ -71,9 +71,47 @@ const Analytics = () => {
     }
   };
 
-  const handleExport = (type) => {
-    console.log(`Exporting ${type}...`);
-    // Placeholder for export functionality
+  const handleExport = async (format) => {
+    info(`Generating ${format.toUpperCase()} report...`);
+    try {
+      const endpoint = format === 'pdf' ? '/analytics/export-pdf' : '/analytics/export-csv';
+      const reportType = format === 'pdf' ? 'admin-insights' : 'students';
+      
+      const exportData = {
+        type: reportType,
+        filters: selectedSemester ? { semester: selectedSemester } : {}
+      };
+
+      const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+      const fileResponse = await fetch(`${baseURL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('authToken') || ''}`
+        },
+        body: JSON.stringify(exportData)
+      });
+
+      if (!fileResponse.ok) {
+        throw new Error('Export failed');
+      }
+
+      const blob = await fileResponse.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${reportType}_report.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      success(`${format.toUpperCase()} report exported successfully`);
+    } catch (err) {
+      console.error('Export error:', err);
+      toastError('Failed to export report');
+    }
   };
 
   if (loading && departmentRisk.length === 0) {

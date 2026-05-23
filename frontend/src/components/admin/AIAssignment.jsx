@@ -7,16 +7,16 @@ import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 
 const PROBLEM_CATEGORIES = {
-    academic_struggles: { label: 'Academic Struggles', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-    family_issues: { label: 'Family Issues', color: 'bg-purple-100 text-purple-700 border-purple-200' },
-    financial_problems: { label: 'Financial Problems', color: 'bg-orange-100 text-orange-700 border-orange-200' },
-    health_concerns: { label: 'Health Concerns', color: 'bg-red-100 text-red-700 border-red-200' },
-    mental_health: { label: 'Mental Health', color: 'bg-pink-100 text-pink-700 border-pink-200' },
+    academic_struggles: { label: 'Academic Struggles', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+    family_issues: { label: 'Family Issues', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
+    financial_problems: { label: 'Financial Problems', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
+    health_concerns: { label: 'Health Concerns', color: 'bg-red-500/10 text-red-400 border-red-500/20' },
+    mental_health: { label: 'Mental Health', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' },
     bereavement: { label: 'Bereavement/Loss', color: 'bg-dark-surface text-dark-muted border-dark-border' },
-    social_isolation: { label: 'Social Isolation', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
-    attendance_issues: { label: 'Attendance Issues', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-    substance_abuse: { label: 'Substance Abuse', color: 'bg-rose-100 text-rose-700 border-rose-200' },
-    career_confusion: { label: 'Career Confusion', color: 'bg-teal-100 text-teal-700 border-teal-200' }
+    social_isolation: { label: 'Social Isolation', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
+    attendance_issues: { label: 'Attendance Issues', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+    substance_abuse: { label: 'Substance Abuse', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' },
+    career_confusion: { label: 'Career Confusion', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' }
 };
 
 const AIAssignment = ({ studentId, studentName, onMentorSelect }) => {
@@ -121,7 +121,7 @@ const AIAssignment = ({ studentId, studentName, onMentorSelect }) => {
                         className="flex flex-col items-center justify-center py-12"
                     >
                         <div className="relative mb-4">
-                            <div className="w-16 h-16 border-4 border-indigo-100 rounded-full"></div>
+                            <div className="w-16 h-16 border-4 border-indigo-950 rounded-full"></div>
                             <div className="absolute top-0 left-0 w-16 h-16 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin"></div>
                             <Brain className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-indigo-500 animate-pulse" size={24} />
                         </div>
@@ -202,7 +202,7 @@ const AIAssignment = ({ studentId, studentName, onMentorSelect }) => {
 
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <h5 className="font-bold text-white group-hover:text-indigo-700 transition-colors">
+                                                    <h5 className="font-bold text-white group-hover:text-primary-400 transition-colors">
                                                         {mentor.name}
                                                     </h5>
                                                     <p className="text-xs text-dark-muted mt-1">

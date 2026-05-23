@@ -4,7 +4,6 @@ import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import WelcomeBanner from '../components/dashboard/WelcomeBanner';
 import StatsCard from '../components/dashboard/StatsCard';
-import RecentActivity from '../components/dashboard/RecentActivity';
 import {
   Users,
   AlertTriangle,
@@ -16,11 +15,12 @@ import {
   Sparkles
 } from 'lucide-react';
 import { AreaChart, Area, PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { studentAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [highRiskStudents, setHighRiskStudents] = useState([]);
@@ -310,9 +310,6 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            {/* Activity Feed */}
-            <RecentActivity />
-
             {/* Quick Promo / Insight */}
             <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-6 text-white text-center shadow-lg shadow-indigo-500/20">
               <Sparkles className="mx-auto mb-3 text-yellow-300 animate-pulse" size={28} />
@@ -320,7 +317,10 @@ const Dashboard = () => {
               <p className="text-indigo-100 text-sm mb-4">
                 We've analyzed student performance patterns. 12 new recommendations available.
               </p>
-              <button className="px-4 py-2 bg-dark-surface border border-dark-border text-primary-400 rounded-lg text-sm font-bold hover:shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:border-primary-500/30 hover:scale-105 transition-all">
+              <button
+                onClick={() => navigate('/analytics')}
+                className="px-4 py-2 bg-dark-surface border border-dark-border text-primary-400 rounded-lg text-sm font-bold hover:shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:border-primary-500/30 hover:scale-105 transition-all"
+              >
                 View Recommendations
               </button>
             </div>

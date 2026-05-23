@@ -17,18 +17,18 @@ const ConfirmationModal = ({
 
     const variants = {
         danger: {
-            icon: <AlertTriangle className="text-rose-600" size={32} />,
-            bg: "bg-rose-50",
+            icon: <AlertTriangle className="text-rose-400" size={32} />,
+            bg: "bg-rose-500/10 border border-rose-500/20",
             button: "bg-rose-600 hover:bg-rose-700 text-white"
         },
         warning: {
-            icon: <AlertTriangle className="text-amber-600" size={32} />,
-            bg: "bg-amber-50",
+            icon: <AlertTriangle className="text-amber-400" size={32} />,
+            bg: "bg-amber-500/10 border border-amber-500/20",
             button: "bg-amber-600 hover:bg-amber-700 text-white"
         },
         info: {
-            icon: <AlertTriangle className="text-indigo-600" size={32} />,
-            bg: "bg-indigo-50",
+            icon: <AlertTriangle className="text-indigo-400" size={32} />,
+            bg: "bg-indigo-500/10 border border-indigo-500/20",
             button: "bg-indigo-600 hover:bg-indigo-700 text-white"
         }
     };

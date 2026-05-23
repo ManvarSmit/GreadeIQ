@@ -1,4 +1,4 @@
-import { User, Search, Bell } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -32,34 +32,8 @@ const Topbar = ({ title = 'Dashboard' }) => {
           <h2 className="text-xl font-bold text-white tracking-tight hidden md:block">{title}</h2>
         </div>
 
-        {/* Search Bar */}
-        <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
-          <div className="relative w-full group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-slate-400 group-focus-within:text-primary-500 transition-colors" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-dark-border rounded-xl leading-5 bg-dark-bg/50 text-white placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-200 sm:text-sm"
-              placeholder="Search students, reports, or settings..."
-            />
-          </div>
-        </div>
-
         {/* Right Actions */}
         <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => info('No new notifications. Alerts will appear here when available.')}
-            className="relative p-2 rounded-full text-dark-muted hover:bg-white/10 hover:text-primary-400 transition-colors"
-            aria-label="Notifications"
-          >
-            <Bell size={20} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-dark-surface" aria-hidden />
-          </button>
-
-          <div className="h-8 w-px bg-dark-border mx-1 hidden sm:block" />
-
           <button
             type="button"
             onClick={() => navigate('/change-password')}

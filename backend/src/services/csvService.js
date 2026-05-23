@@ -4,6 +4,7 @@ import csvParser from 'csv-parser';
 import { format } from 'fast-csv';
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
+import { calculateRisk } from './riskEngine.js';
 
 /**
  * Import students from CSV file
@@ -94,24 +95,15 @@ export const exportStudentsToCSV = async (outputPath, filters = {}) => {
     }
 
     if (filters.riskLevel) {
-      // Join with RiskProfile if filtering by risk
-      const riskProfiles = await prisma.riskProfile.findMany({
-        where: { riskLevel: filters.riskLevel },
-        select: { studentId: true }
-      });
-      where.id = { in: riskProfiles.map(rp => rp.studentId) };
+      where.dropoutRisk = filters.riskLevel;
     }
 
     // Fetch students
     const students = await prisma.student.findMany({
       where,
       include: {
-        riskProfile: {
-          select: {
-            riskLevel: true,
-            riskScore: true
-          }
-        }
+        attendanceRecords: true,
+        assessments: true
       }
     });
 
@@ -123,6 +115,9 @@ export const exportStudentsToCSV = async (outputPath, filters = {}) => {
 
     // Write student data
     students.forEach(student => {
+      // Calculate risk score dynamically
+      const { riskScore } = calculateRisk(student, student.attendanceRecords, student.assessments);
+
       csvStream.write({
         studentId: student.studentId,
         name: student.name,
@@ -136,8 +131,8 @@ export const exportStudentsToCSV = async (outputPath, filters = {}) => {
         gender: student.gender || '',
         familyIncome: student.familyIncome || '',
         parentEducation: student.parentEducation || '',
-        riskLevel: student.riskProfile?.riskLevel || 'N/A',
-        riskScore: student.riskProfile?.riskScore || 0
+        riskLevel: student.dropoutRisk || 'N/A',
+        riskScore: riskScore || 0
       });
     });
 

@@ -153,17 +153,17 @@ const DataManagement = () => {
         />
 
         {/* Advanced Section */}
-        <section className="bg-white/50 backdrop-blur-sm rounded-2xl border border-dark-border/60 p-6">
+        <section className="bg-dark-surface/80 backdrop-blur-md rounded-2xl border border-dark-border/60 p-6 transition-all hover:border-dark-border">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="flex items-center gap-3 w-full text-left group"
           >
-            <div className={`p-2 rounded-lg transition-colors ${showAdvanced ? 'bg-indigo-100 text-indigo-600' : 'bg-dark-surface text-dark-muted group-hover:bg-slate-200'}`}>
+            <div className={`p-2 rounded-lg transition-colors ${showAdvanced ? 'bg-indigo-600/20 text-indigo-400' : 'bg-dark-bg text-dark-muted group-hover:bg-dark-surface/80 group-hover:text-white'}`}>
               {showAdvanced ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </div>
             <div>
-              <h3 className="font-semibold text-white group-hover:text-indigo-700 transition-colors">Advanced Data Options</h3>
-              <p className="text-sm text-secondary-500">Upload specific datasets individually (Attendance, Exams, Fees)</p>
+              <h3 className="font-semibold text-white group-hover:text-primary-400 transition-colors">Advanced Data Options</h3>
+              <p className="text-sm text-dark-muted">Upload specific datasets individually (Attendance, Exams, Fees)</p>
             </div>
           </button>
 
@@ -198,16 +198,16 @@ const DataManagement = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="border border-rose-200 bg-rose-50/30 rounded-2xl overflow-hidden"
+          className="border border-rose-500/20 bg-rose-500/5 backdrop-blur-sm rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(239,68,68,0.05)]"
         >
           <div className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-rose-100 rounded-xl text-rose-600">
+              <div className="p-3 bg-rose-500/10 rounded-xl text-rose-400">
                 <AlertTriangle size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-rose-900">Danger Zone</h3>
-                <p className="text-sm text-rose-700/80 max-w-xl">
+                <h3 className="text-lg font-bold text-rose-400">Danger Zone</h3>
+                <p className="text-sm text-dark-muted max-w-xl">
                   Permanently delete all system data including students, academic records, and attendance. This action cannot be undone.
                 </p>
               </div>
@@ -230,26 +230,26 @@ const DataManagement = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
                 onClick={() => setShowClearModal(false)}
               />
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-0 overflow-hidden z-10"
+                className="bg-dark-surface rounded-2xl border border-dark-border shadow-2xl max-w-md w-full p-0 overflow-hidden z-10"
               >
-                <div className="p-6 bg-rose-50 border-b border-rose-100 flex items-center gap-3">
-                  <div className="p-2 bg-rose-100 rounded-full">
-                    <AlertTriangle className="text-rose-600" size={24} />
+                <div className="p-6 bg-rose-950/20 border-b border-dark-border flex items-center gap-3">
+                  <div className="p-2 bg-rose-500/10 rounded-full">
+                    <AlertTriangle className="text-rose-400" size={24} />
                   </div>
-                  <h3 className="text-xl font-bold text-rose-900">Confirm Data Deletion</h3>
+                  <h3 className="text-xl font-bold text-rose-400">Confirm Data Deletion</h3>
                 </div>
 
                 <div className="p-6">
-                  <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl">
-                    <p className="text-sm text-rose-900 font-bold mb-2">⚠️ This will permanently delete:</p>
-                    <ul className="text-sm text-rose-800 space-y-1 ml-4 list-disc">
+                  <div className="mb-6 p-4 bg-rose-950/15 border border-rose-500/20 rounded-xl">
+                    <p className="text-sm text-rose-400 font-semibold mb-2">⚠️ This will permanently delete:</p>
+                    <ul className="text-sm text-dark-muted space-y-1 ml-4 list-disc">
                       <li>All student records & profiles</li>
                       <li>Academic history & attendance logs</li>
                       <li>Behavioral incidents & counseling notes</li>
@@ -266,11 +266,11 @@ const DataManagement = () => {
                     value={confirmText}
                     onChange={(e) => setConfirmText(e.target.value)}
                     placeholder="Type DELETE"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl mb-4 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-shadow font-mono"
+                    className="w-full px-4 py-3 bg-dark-bg border border-dark-border rounded-xl text-white mb-4 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-mono placeholder:text-dark-muted"
                   />
 
                   {clearError && (
-                    <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
+                    <div className="mb-4 p-3 bg-red-500/10 text-red-400 text-sm rounded-lg border border-red-500/20">
                       {clearError}
                     </div>
                   )}
@@ -283,7 +283,7 @@ const DataManagement = () => {
                         setClearError('');
                       }}
                       disabled={clearing}
-                      className="flex-1 px-4 py-2.5 bg-dark-surface hover:bg-slate-200 text-dark-muted font-semibold rounded-xl transition-colors disabled:opacity-50"
+                      className="flex-1 px-4 py-2.5 bg-dark-bg hover:bg-dark-bg/70 text-dark-muted hover:text-white font-semibold rounded-xl border border-dark-border transition-colors disabled:opacity-50"
                     >
                       Cancel
                     </button>

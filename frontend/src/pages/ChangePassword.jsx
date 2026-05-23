@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import Button from '../components/ui/Button';
-import { Lock, ShieldCheck, AlertCircle, KeyRound, ArrowRight } from 'lucide-react';
+import { Lock, ShieldCheck, AlertCircle, KeyRound, ArrowRight, ArrowLeft } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const ChangePassword = () => {
   const navigate = useNavigate();
@@ -54,9 +55,9 @@ const ChangePassword = () => {
     <div className="min-h-screen flex items-center justify-center bg-dark-bg relative overflow-hidden">
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-amber-50 via-slate-50 to-amber-100 opacity-80"></div>
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-amber-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-dark-bg via-dark-surface to-dark-bg opacity-80"></div>
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-amber-950/20 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-orange-950/20 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       </div>
 
       <motion.div
@@ -65,8 +66,18 @@ const ChangePassword = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md z-10 p-4"
       >
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50 p-8">
-          <div className="text-center mb-8">
+        <div className="bg-dark-surface/80 backdrop-blur-xl rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-dark-border p-8 relative">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute top-6 left-6 text-dark-muted hover:text-white transition-colors flex items-center gap-1.5 text-sm font-medium"
+            type="button"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+
+          <div className="text-center mb-8 pt-4">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -106,7 +117,7 @@ const ChangePassword = () => {
                     value={formData.currentPassword}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-dark-bg border border-dark-border rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-slate-400"
+                    className="w-full pl-10 pr-4 py-3 bg-dark-bg border border-dark-border rounded-xl text-white focus:bg-dark-surface focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-dark-muted"
                     placeholder="Enter temporary password"
                   />
                 </div>
@@ -124,7 +135,7 @@ const ChangePassword = () => {
                     value={formData.newPassword}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-dark-bg border border-dark-border rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-slate-400"
+                    className="w-full pl-10 pr-4 py-3 bg-dark-bg border border-dark-border rounded-xl text-white focus:bg-dark-surface focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-dark-muted"
                     placeholder="Min. 6 characters"
                   />
                 </div>
@@ -142,7 +153,7 @@ const ChangePassword = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-dark-bg border border-dark-border rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-slate-400"
+                    className="w-full pl-10 pr-4 py-3 bg-dark-bg border border-dark-border rounded-xl text-white focus:bg-dark-surface focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-dark-muted"
                     placeholder="Re-enter new password"
                   />
                 </div>
