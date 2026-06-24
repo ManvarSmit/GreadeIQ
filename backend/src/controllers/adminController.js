@@ -1,4 +1,10 @@
 import prisma from '../config/database.js';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import authConfig from '../config/auth.js';
+import logger from '../utils/logger.js';
+import { sendPasswordResetEmail } from '../services/emailService.js';
+
 
 /**
  * Get all mentors with statistics
@@ -566,3 +572,67 @@ export const deleteUser = async (req, res) => {
         });
     }
 };
+
+/**
+ * Reset a user's password to a temporary one
+ * POST /api/admin/users/:id/reset-password
+ */
+export const resetUserPassword = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find user to verify they exist and are not an admin
+        const user = await prisma.user.findUnique({
+            where: { id }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        if (user.role === 'ADMIN') {
+            return res.status(403).json({
+                success: false,
+                message: 'Cannot reset password for other admin users'
+            });
+        }
+
+        // Generate random secure password (8 characters)
+        const tempPassword = crypto.randomBytes(6).toString('hex').slice(0, 8);
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(tempPassword, authConfig.bcrypt.saltRounds);
+
+        // Update user
+        await prisma.user.update({
+            where: { id },
+            data: {
+                password: hashedPassword,
+                isTemporaryPassword: true // Set back to temporary password
+            }
+        });
+
+        // Send email with new credentials (or fallback to log)
+        await sendPasswordResetEmail(user.email, user.name, tempPassword);
+
+        logger.info(`Password reset by admin for user: ${user.email}`);
+
+        res.status(200).json({
+            success: true,
+            message: `Password reset successfully. A temporary password has been generated.`,
+            tempPassword
+        });
+
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error resetting password',
+            error: error.message
+        });
+    }
+};
+

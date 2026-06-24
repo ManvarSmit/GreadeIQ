@@ -7,7 +7,8 @@ import {
     bulkAssignStudents,
     reassignStudent,
     getUserManagementStats,
-    deleteUser
+    deleteUser,
+    resetUserPassword
 } from '../controllers/adminController.js';
 import { authenticate, authorizeRole } from '../middleware/auth.js';
 
@@ -22,5 +23,7 @@ router.post('/assign/bulk-students', authenticate, authorizeRole('ADMIN'), bulkA
 router.put('/reassign/student', authenticate, authorizeRole('ADMIN'), reassignStudent);
 router.get('/stats', authenticate, authorizeRole('ADMIN'), getUserManagementStats);
 router.delete('/users/:id', authenticate, authorizeRole('ADMIN'), deleteUser);
+router.post('/users/:id/reset-password', authenticate, authorizeRole('ADMIN'), resetUserPassword);
+
 
 export default router;

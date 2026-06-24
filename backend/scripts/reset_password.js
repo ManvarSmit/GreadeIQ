@@ -8,7 +8,7 @@ const resetPassword = async () => {
   const newPassword = process.argv[3] || 'password123';
 
   if (!email) {
-    console.log('❌ Error: Email is required.');
+    console.log('Error: Email is required.');
     console.log('Usage: node scripts/reset_password.js <email> [new_password]');
     process.exit(1);
   }
@@ -22,9 +22,9 @@ const resetPassword = async () => {
         where: { email },
         data: { password: hashedPassword, isTemporaryPassword: false }
       });
-      console.log(`✅ Password successfully reset for User (Role: ${user.role})!`);
-      console.log(`📧 Email: ${email}`);
-      console.log(`🔑 New Password: ${newPassword}`);
+      console.log(`Password successfully reset for User (Role: ${user.role})!`);
+      console.log(`Email: ${email}`);
+      console.log(`New Password: ${newPassword}`);
       return;
     }
 
@@ -36,15 +36,15 @@ const resetPassword = async () => {
         where: { email },
         data: { password: hashedPassword }
       });
-      console.log(`✅ Password successfully reset for Student (${student.studentId})!`);
-      console.log(`📧 Email: ${email}`);
-      console.log(`🔑 New Password: ${newPassword}`);
+      console.log(`Password successfully reset for Student (${student.studentId})!`);
+      console.log(`Email: ${email}`);
+      console.log(`New Password: ${newPassword}`);
       return;
     }
 
-    console.log(`❌ Error: No user or student found with email: ${email}`);
+    console.log(`Error: No user or student found with email: ${email}`);
   } catch (error) {
-    console.error('❌ Error resetting password:', error.message);
+    console.error('Error resetting password:', error.message);
   } finally {
     await prisma.$disconnect();
   }

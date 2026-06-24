@@ -4,7 +4,7 @@ import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import { adminAPI, studentAPI } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
-import { Users, UserCog, UserPlus, Trash2 } from 'lucide-react';
+import { Users, UserCog, UserPlus, Trash2, Key, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ConfirmationModal from '../modals/ConfirmationModal';
 import AssignmentModal from './AssignmentModal';
@@ -25,6 +25,13 @@ const UserManagementSection = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Reset Password State
+    const [showResetModal, setShowResetModal] = useState(false);
+    const [userToReset, setUserToReset] = useState(null);
+    const [isResetting, setIsResetting] = useState(false);
+    const [tempPassword, setTempPassword] = useState('');
+    const [copied, setCopied] = useState(false);
 
 
 
@@ -71,6 +78,36 @@ const UserManagementSection = () => {
             setIsDeleting(false);
             setUserToDelete(null);
         }
+    };
+
+    const handleResetClick = (userId, userName, type) => {
+        setUserToReset({ id: userId, name: userName, type });
+        setShowResetModal(true);
+    };
+
+    const confirmReset = async () => {
+        if (!userToReset) return;
+
+        try {
+            setIsResetting(true);
+            const response = await adminAPI.resetUserPassword(userToReset.id);
+            setTempPassword(response.tempPassword);
+            success(`Password reset successfully for ${userToReset.name}`);
+            setShowResetModal(false);
+        } catch (err) {
+            console.error('Reset password error:', err);
+            error(err.message || 'Failed to reset password');
+            setUserToReset(null);
+        } finally {
+            setIsResetting(false);
+        }
+    };
+
+    const copyToClipboard = () => {
+        if (!tempPassword) return;
+        navigator.clipboard.writeText(tempPassword);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
     const getUniqueDepartments = () => {
@@ -191,7 +228,14 @@ const UserManagementSection = () => {
                                                 ? counselor.mentors.map(m => m.name).join(', ')
                                                 : <span className="text-slate-400 italic">Unassigned</span>}
                                         </td>
-                                        <td className="py-4 px-6 text-center">
+                                        <td className="py-4 px-6 text-center whitespace-nowrap">
+                                            <button
+                                                onClick={() => handleResetClick(counselor.userId, counselor.name, 'Counselor')}
+                                                className="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all mr-1"
+                                                title="Reset Password"
+                                            >
+                                                <Key size={16} />
+                                            </button>
                                             <button
                                                 onClick={() => handleDeleteClick(counselor.userId, counselor.name, 'Counselor')}
                                                 className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
@@ -232,7 +276,14 @@ const UserManagementSection = () => {
                                         <td className="py-4 px-6 text-center text-sm text-dark-muted">{mentor.assignedStudents?.length || 0}</td>
                                         <td className="py-4 px-6 text-center text-sm text-dark-muted">{mentor.counselorCount}</td>
                                         <td className="py-4 px-6 text-sm text-dark-muted">{mentor.department || 'N/A'}</td>
-                                        <td className="py-4 px-6 text-center">
+                                        <td className="py-4 px-6 text-center whitespace-nowrap">
+                                            <button
+                                                onClick={() => handleResetClick(mentor.userId, mentor.name, 'Mentor')}
+                                                className="p-2 text-dark-muted hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-all mr-1"
+                                                title="Reset Password"
+                                            >
+                                                <Key size={16} />
+                                            </button>
                                             <button
                                                 onClick={() => handleDeleteClick(mentor.userId, mentor.name, 'Mentor')}
                                                 className="p-2 text-dark-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
@@ -271,6 +322,80 @@ const UserManagementSection = () => {
                 variant="danger"
                 isLoading={isDeleting}
             />
+
+            {/* Reset Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showResetModal}
+                onClose={() => {
+                    setShowResetModal(false);
+                    setUserToReset(null);
+                }}
+                onConfirm={confirmReset}
+                title={`Reset Password for ${userToReset?.type}`}
+                message={`Are you sure you want to reset the password for ${userToReset?.name}? A new temporary password will be generated.`}
+                confirmText="Reset Password"
+                variant="warning"
+                isLoading={isResetting}
+            />
+
+            {/* Password Reset Success Modal */}
+            <AnimatePresence>
+                {tempPassword && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                            onClick={() => {
+                                setTempPassword('');
+                                setUserToReset(null);
+                            }}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full max-w-md bg-dark-surface border border-dark-border rounded-2xl shadow-2xl p-6 overflow-hidden z-10"
+                        >
+                            <div className="flex flex-col items-center text-center">
+                                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-amber-500/10 border border-amber-500/20">
+                                    <Key className="text-amber-400" size={32} />
+                                </div>
+
+                                <h3 className="text-xl font-bold text-white mb-2">Password Reset Successful</h3>
+                                <p className="text-dark-muted text-sm mb-4">
+                                    The password for <strong className="text-white">{userToReset?.name}</strong> has been successfully reset. 
+                                    Please copy and share the new temporary password below:
+                                </p>
+
+                                <div className="w-full flex items-center justify-between gap-3 bg-dark-bg p-3.5 rounded-xl border border-dark-border select-all font-mono text-white text-lg font-bold tracking-wider mb-6 relative">
+                                    <span>{tempPassword}</span>
+                                    <button
+                                        onClick={copyToClipboard}
+                                        type="button"
+                                        className="p-2 text-slate-400 hover:text-white bg-dark-surface border border-dark-border hover:border-slate-500 rounded-lg transition-all"
+                                        title="Copy to Clipboard"
+                                    >
+                                        {copied ? <Check className="text-emerald-400" size={18} /> : <Copy size={18} />}
+                                    </button>
+                                </div>
+
+                                <Button
+                                    variant="primary"
+                                    className="w-full justify-center"
+                                    onClick={() => {
+                                        setTempPassword('');
+                                        setUserToReset(null);
+                                    }}
+                                >
+                                    Done
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

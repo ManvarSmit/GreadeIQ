@@ -54,3 +54,44 @@ export const sendCredentials = async (email, name, password, role) => {
     return false;
   }
 };
+
+export const sendPasswordResetEmail = async (email, name, password) => {
+  try {
+    const info = await transporter.sendMail({
+      from: process.env.SMTP_FROM || '"Student Success System" <admin@success-system.edu>',
+      to: email,
+      subject: 'Student Success System - Password Reset',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <h2 style="color: #4F46E5;">Password Reset</h2>
+          <p>Hello <strong>${name}</strong>,</p>
+          <p>Your password has been reset by the Administrator.</p>
+          <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+            <p style="margin: 5px 0;"><strong>Temporary Password:</strong> <code style="background: #e5e7eb; padding: 2px 4px; border-radius: 4px;">${password}</code></p>
+          </div>
+          <p>Please log in with this temporary password. You will be required to change it immediately upon logging in.</p>
+          <p style="margin-top: 20px;">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login" style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Login Now</a>
+          </p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;">
+          <p style="font-size: 12px; color: #666;">If you did not request this, please contact your administrator.</p>
+        </div>
+      `,
+    });
+
+    logger.info(`Reset password credentials sent to ${email}: ${info.messageId}`);
+    return true;
+  } catch (error) {
+    logger.error(`Error sending reset email to ${email}: ${error.message}`);
+    console.error('SMTP Error Details:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('==========================================');
+      console.log(`[FALLBACK] Email delivery failed. New Password for: ${email}`);
+      console.log(`Password: ${password}`);
+      console.log('==========================================');
+    }
+    return false;
+  }
+};
+

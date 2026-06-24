@@ -13,8 +13,9 @@ export const authConfig = {
   },
   roles: {
     ADMIN: 'ADMIN',
-    FACULTY: 'FACULTY',
     MENTOR: 'MENTOR',
+    COUNSELOR: 'COUNSELOR',
+    STUDENT: 'STUDENT',
   },
 };
 

@@ -15,8 +15,8 @@ const api = axios.create({
 // Request interceptor - Attach JWT token to every request
 api.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
-    const token = localStorage.getItem('authToken');
+    // Get token from sessionStorage
+    const token = sessionStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -42,7 +42,7 @@ api.interceptors.response.use(
       switch (status) {
         case 401:
           // Unauthorized - clear token and redirect to login
-          localStorage.removeItem('authToken');
+          sessionStorage.removeItem('authToken');
           console.error('Unauthorized. Redirecting to login.');
           // Auto-logout: Redirect to login
           if (window.location.pathname !== '/login') {
@@ -169,6 +169,7 @@ export const adminAPI = {
   reassignStudent: (data) => api.put('/admin/reassign/student', data),
   getUserManagementStats: () => api.get('/admin/stats'),
   deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
+  resetUserPassword: (userId) => api.post(`/admin/users/${userId}/reset-password`),
 };
 
 // ==================== COUNSELING ENDPOINTS ====================

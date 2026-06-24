@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = sessionStorage.getItem('authToken');
       if (!token) {
         setLoading(false);
         return;
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
       const { user, token } =response.data;
       
       // Store token
-      localStorage.setItem('authToken', token);
+      sessionStorage.setItem('authToken', token);
       
       // Set user state
       setUser(user);
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
+    sessionStorage.removeItem('authToken');
     setUser(null);
     setIsAuthenticated(false);
     navigate('/login');

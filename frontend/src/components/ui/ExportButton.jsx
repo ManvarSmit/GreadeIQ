@@ -22,7 +22,7 @@ const ExportButton = ({ type = 'csv', reportType, filters, onExport, className =
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('authToken') || ''}`
+          Authorization: `Bearer ${sessionStorage.getItem('authToken') || ''}`
         },
         body: JSON.stringify(exportData)
       });

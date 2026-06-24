@@ -5,7 +5,7 @@ import prisma from '../config/database.js';
  */
 async function checkProfiles() {
     try {
-        console.log('📊 Checking current database state...\n');
+        console.log('Checking current database state...\n');
 
         // Check all users
         const allUsers = await prisma.user.findMany({
@@ -17,7 +17,7 @@ async function checkProfiles() {
             }
         });
 
-        console.log('👥 All Users:');
+        console.log('All Users:');
         allUsers.forEach(user => {
             console.log(`   - ${user.name} (${user.email}) - Role: ${user.role}`);
         });
@@ -31,7 +31,7 @@ async function checkProfiles() {
             }
         });
 
-        console.log('\n👨‍⚕️ Counselor Profiles:');
+        console.log('\nCounselor Profiles:');
         if (counselors.length === 0) {
             console.log('   (none)');
         } else {
