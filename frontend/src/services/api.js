@@ -2,9 +2,7 @@ import axios from 'axios';
 
 // Use environment variable with fallback
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-console.log('--- GREADEIQ API CONFIGURATION ---');
-console.log('Active API URL:', API_BASE_URL);
-console.log('Raw Env Value:', import.meta.env.VITE_API_URL);
+
 
 
 // Create axios instance
