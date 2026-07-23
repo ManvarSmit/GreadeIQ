@@ -10,11 +10,16 @@ import { calculateComprehensiveRisk } from './riskEngine.js';
  * @param {Date} followUpDate - Follow-up date
  * @returns {Promise<Object>} Created counseling log
  */
-export const createCounselingLog = async (studentId, mentorId, notes, actionsTaken = null, followUpRequired = false, followUpDate = null) => {
+export const createCounselingLog = async (idOrEnrollment, mentorId, notes, actionsTaken = null, followUpRequired = false, followUpDate = null) => {
   try {
-    // Get student with current risk data
-    const student = await prisma.student.findUnique({
-      where: { id: studentId },
+    // Get student with current risk data (lookup by UUID or studentId)
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id: idOrEnrollment },
+          { studentId: idOrEnrollment }
+        ]
+      },
       include: {
         attendanceRecords: { orderBy: { date: 'desc' } },
         assessments: { orderBy: { date: 'desc' } }
@@ -27,10 +32,10 @@ export const createCounselingLog = async (studentId, mentorId, notes, actionsTak
 
     const riskProfile = calculateComprehensiveRisk(student);
 
-    // Create counseling log
+    // Create counseling log with canonical student UUID
     const log = await prisma.counselingLog.create({
       data: {
-        studentId,
+        studentId: student.id,
         mentorId,
         sessionDate: new Date(),
         notes,
@@ -171,10 +176,23 @@ export const calculateImprovement = async (studentId, logId = null) => {
  * @param {string} studentId - Student ID
  * @returns {Promise<Array>} Counseling logs
  */
-export const getStudentCounselingHistory = async (studentId) => {
+export const getStudentCounselingHistory = async (idOrEnrollment) => {
   try {
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id: idOrEnrollment },
+          { studentId: idOrEnrollment }
+        ]
+      }
+    });
+
+    const targetIds = student ? [student.id, student.studentId] : [idOrEnrollment];
+
     const logs = await prisma.counselingLog.findMany({
-      where: { studentId },
+      where: {
+        studentId: { in: targetIds }
+      },
       orderBy: { sessionDate: 'desc' }
     });
 

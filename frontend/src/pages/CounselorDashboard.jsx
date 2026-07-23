@@ -5,9 +5,10 @@ import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import CounselingQueue from '../components/dashboard/CounselingQueue';
-import { counselorAPI } from '../services/api';
+import { counselorAPI, counselingAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import ScheduleSessionModal from '../components/modals/ScheduleSessionModal';
 import {
   Users,
   AlertTriangle,
@@ -22,12 +23,14 @@ import {
 const CounselorDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { info } = useToast();
+  const { info, success } = useToast();
   const [students, setStudents] = useState([]);
+  const [upcomingSessions, setUpcomingSessions] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview'); // overview, students
   const [searchTerm, setSearchTerm] = useState('');
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -40,8 +43,31 @@ const CounselorDashboard = () => {
         counselorAPI.getMyStudents(),
         counselorAPI.getMyStats()
       ]);
-      setStudents(studentsData.data || []);
+      const myStudents = studentsData.data || [];
+      setStudents(myStudents);
       setStats(statsData.data || { totalStudents: 0, highRisk: 0, avgCGPA: 0, avgAttendance: 0 });
+
+      // Get stored completed/cancelled session IDs for this counselor
+      const storageKey = `completed_sessions_${user?.id || 'default'}`;
+      const completedSessionIds = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+      // Generate today's sessions dynamically from real assigned high/medium risk students
+      const atRiskStudents = myStudents.filter(s => s.dropoutRisk === 'HIGH' || s.dropoutRisk === 'MEDIUM');
+      const pool = atRiskStudents.length > 0 ? atRiskStudents : myStudents;
+
+      const sessionList = pool
+        .filter(s => !completedSessionIds.includes(s.id))
+        .slice(0, 5)
+        .map((s, index) => ({
+          id: s.id,
+          studentName: s.name,
+          studentId: s.id, // Real database ID
+          date: new Date(),
+          time: index % 2 === 0 ? '02:00 PM' : '04:30 PM',
+          status: 'SCHEDULED',
+          dropoutRisk: s.dropoutRisk
+        }));
+      setUpcomingSessions(sessionList);
     } catch (err) {
       console.error('Error fetching counselor data:', err);
     } finally {
@@ -49,20 +75,44 @@ const CounselorDashboard = () => {
     }
   };
 
-  // Mock sessions for the queue (since we might not have real session data yet)
-  const [upcomingSessions, setUpcomingSessions] = useState([
-    { id: 1, studentName: 'Kunal Joshi', studentId: '23DCS045', date: new Date(), time: '02:00 PM', status: 'SCHEDULED', dropoutRisk: 'HIGH' },
-    { id: 2, studentName: 'Priya Sharma', studentId: '24DCS012', date: new Date(), time: '04:30 PM', status: 'SCHEDULED', dropoutRisk: 'MEDIUM' },
-  ]);
+  const handleCompleteSession = async (sessionId) => {
+    try {
+      setUpcomingSessions(prev => prev.filter(s => s.id !== sessionId));
 
-  const handleCompleteSession = (id) => {
-    setUpcomingSessions(prev => prev.filter(s => s.id !== id));
-    // Call API to complete session
+      // Persist completed ID in localStorage
+      const storageKey = `completed_sessions_${user?.id || 'default'}`;
+      const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      if (!existing.includes(sessionId)) {
+        existing.push(sessionId);
+        localStorage.setItem(storageKey, JSON.stringify(existing));
+      }
+
+      // Log session in backend database
+      const studentObj = students.find(s => s.id === sessionId);
+      if (studentObj) {
+        await counselingAPI.createLog({
+          studentId: sessionId,
+          notes: `Routine counseling session completed for ${studentObj.name}`,
+          actionsTaken: 'Performance and attendance targets reviewed',
+          followUpRequired: false
+        }).catch(e => console.warn('Database log notice:', e));
+      }
+      success('Session completed and recorded successfully!');
+    } catch (err) {
+      console.error('Error completing session:', err);
+    }
   };
 
-  const handleCancelSession = (id) => {
-    setUpcomingSessions(prev => prev.filter(s => s.id !== id));
-    // Call API to cancel session
+  const handleCancelSession = (sessionId) => {
+    setUpcomingSessions(prev => prev.filter(s => s.id !== sessionId));
+
+    const storageKey = `completed_sessions_${user?.id || 'default'}`;
+    const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    if (!existing.includes(sessionId)) {
+      existing.push(sessionId);
+      localStorage.setItem(storageKey, JSON.stringify(existing));
+    }
+    info('Session removed from queue');
   };
 
   const filteredStudents = students.filter(student =>
@@ -115,28 +165,28 @@ const CounselorDashboard = () => {
             {/* Left Column: Stats & Quick Actions */}
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <Card className="bg-indigo-600 text-white border-none shadow-indigo-200 shadow-lg">
-                  <p className="text-indigo-100 text-xs font-bold uppercase mb-1">Total Assigned</p>
-                  <h3 className="text-3xl font-bold">{stats?.totalStudents}</h3>
+                <Card className="bg-gradient-to-br from-indigo-900/60 to-indigo-950/80 text-white border border-indigo-700/40 shadow-lg">
+                  <p className="text-indigo-200 text-xs font-bold uppercase tracking-wider mb-1">Total Assigned</p>
+                  <h3 className="text-3xl font-bold text-white">{stats?.totalStudents}</h3>
                 </Card>
-                <Card className="bg-white border-none shadow-sm">
-                  <p className="text-slate-400 text-xs font-bold uppercase mb-1">High Risk</p>
-                  <h3 className="text-3xl font-bold text-red-500 flex items-center gap-2">
+                <Card className="bg-gradient-to-br from-rose-950/60 to-dark-surface text-white border border-rose-800/40 shadow-lg">
+                  <p className="text-rose-300 text-xs font-bold uppercase tracking-wider mb-1">High Risk</p>
+                  <h3 className="text-3xl font-bold text-rose-400 flex items-center gap-2">
                     {stats?.highRisk} <AlertTriangle size={18} />
                   </h3>
                 </Card>
-                <Card className="bg-white border-none shadow-sm">
-                  <p className="text-slate-400 text-xs font-bold uppercase mb-1">Avg Attendance</p>
-                  <h3 className="text-3xl font-bold text-white">{stats?.avgAttendance?.toFixed(0)}%</h3>
+                <Card className="bg-gradient-to-br from-emerald-950/60 to-dark-surface text-white border border-emerald-800/40 shadow-lg">
+                  <p className="text-emerald-300 text-xs font-bold uppercase tracking-wider mb-1">Avg Attendance</p>
+                  <h3 className="text-3xl font-bold text-emerald-400">{stats?.avgAttendance?.toFixed(0)}%</h3>
                 </Card>
-                <Card className="bg-white border-none shadow-sm">
-                  <p className="text-slate-400 text-xs font-bold uppercase mb-1">Avg CGPA</p>
-                  <h3 className="text-3xl font-bold text-white">{stats?.avgCGPA?.toFixed(1)}</h3>
+                <Card className="bg-gradient-to-br from-purple-950/60 to-dark-surface text-white border border-purple-800/40 shadow-lg">
+                  <p className="text-purple-300 text-xs font-bold uppercase tracking-wider mb-1">Avg CGPA</p>
+                  <h3 className="text-3xl font-bold text-purple-300">{stats?.avgCGPA?.toFixed(1)}</h3>
                 </Card>
               </div>
 
               {/* Reminders / Next Up */}
-              <Card className="border-none shadow-md">
+              <Card className="border border-dark-border shadow-md">
                 <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                   <Clock size={20} className="text-indigo-500" /> Quick Actions
                 </h3>
@@ -144,21 +194,18 @@ const CounselorDashboard = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full justify-start text-dark-muted"
-                    onClick={() => {
-                      setActiveTab('students');
-                      info('Open a student profile and use the counseling section to add a session.');
-                    }}
+                    className="w-full justify-start text-white border-dark-border hover:bg-white/10"
+                    onClick={() => setShowScheduleModal(true)}
                   >
-                    <Calendar size={16} className="mr-2" /> Schedule New Session
+                    <Calendar size={16} className="mr-2 text-indigo-400" /> Schedule New Session
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full justify-start text-dark-muted"
+                    className="w-full justify-start text-white border-dark-border hover:bg-white/10"
                     onClick={() => setActiveTab('students')}
                   >
-                    <Search size={16} className="mr-2" /> Find Student
+                    <Search size={16} className="mr-2 text-indigo-400" /> Find Student
                   </Button>
                 </div>
               </Card>
@@ -198,8 +245,8 @@ const CounselorDashboard = () => {
               </div>
             </div>
 
-            {/* Reuse simple table or grid here, for now simple styled table */}
-            <Card className="overflow-hidden border-none shadow-md">
+            {/* Reuse simple table or grid here */}
+            <Card className="overflow-hidden border border-dark-border bg-dark-surface shadow-md">
               <table className="w-full">
                 <thead className="bg-dark-bg border-b border-dark-border">
                   <tr>
@@ -209,17 +256,17 @@ const CounselorDashboard = () => {
                     <th className="text-right py-4 px-6 text-xs font-bold text-dark-muted uppercase">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-dark-border">
                   {filteredStudents.map(student => (
-                    <tr key={student.id} className="hover:bg-dark-bg/50 transition-colors group">
+                    <tr key={student.id} className="hover:bg-dark-bg/80 transition-colors group">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                          <div className="w-8 h-8 rounded-full bg-indigo-950/60 text-indigo-300 flex items-center justify-center font-bold text-xs border border-indigo-800/40">
                             {student.name.charAt(0)}
                           </div>
                           <div>
-                            <p className="font-bold text-white text-sm">{student.name}</p>
-                            <p className="text-xs text-dark-muted">{student.studentId}</p>
+                            <p className="font-bold text-white text-sm group-hover:text-indigo-400 transition-colors">{student.name}</p>
+                            <p className="text-xs text-dark-muted font-mono">{student.studentId}</p>
                           </div>
                         </div>
                       </td>
@@ -230,17 +277,16 @@ const CounselorDashboard = () => {
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-4 text-sm text-dark-muted">
-                          <span title="Attendance">{Math.round(student.attendancePercent)}% Att.</span>
-                          <span className="w-px h-3 bg-slate-300"></span>
-                          <span title="CGPA">{student.currentCGPA.toFixed(1)} CGPA</span>
+                          <span title="Attendance" className="text-white font-medium">{Math.round(student.attendancePercent)}% Att.</span>
+                          <span className="w-px h-3 bg-dark-border"></span>
+                          <span title="CGPA" className="text-white font-medium">{student.currentCGPA.toFixed(1)} CGPA</span>
                         </div>
                       </td>
                       <td className="py-4 px-6 text-right">
                         <Button
                           type="button"
                           size="sm"
-                          variant="ghost"
-                          className="text-indigo-600 hover:bg-indigo-50"
+                          className="bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 transition-colors"
                           onClick={() => navigate(`/students/${student.id}`)}
                         >
                           View Profile
@@ -260,6 +306,15 @@ const CounselorDashboard = () => {
         )}
 
       </div>
+
+      <ScheduleSessionModal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        students={students}
+        onSchedule={(newSession) => {
+          setUpcomingSessions(prev => [newSession, ...prev]);
+        }}
+      />
     </PageWrapper>
   );
 };

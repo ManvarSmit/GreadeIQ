@@ -1,4 +1,4 @@
-import { User, Mail, Phone, MapPin, Calendar, Edit, Trash2, GraduationCap } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Edit, Trash2, GraduationCap, MessageSquarePlus } from 'lucide-react';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 
@@ -47,7 +47,7 @@ const ProfileHeader = ({ student, onEdit, onDelete }) => {
                             </div>
 
                             {/* Actions */}
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-wrap">
                                 <Button
                                     variant="outline"
                                     onClick={onEdit}

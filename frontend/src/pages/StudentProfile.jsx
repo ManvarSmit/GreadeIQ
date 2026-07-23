@@ -43,10 +43,15 @@ const StudentProfile = () => {
       setStudent(studentResponse.data || studentResponse);
 
       try {
-        const counselingResponse = await counselingAPI.getByStudent(id);
-        setCounselingHistory(counselingResponse.data || counselingResponse);
+        const counselingResponse = await counselingAPI.getHistory(id);
+        const logs = Array.isArray(counselingResponse)
+          ? counselingResponse
+          : Array.isArray(counselingResponse?.data)
+          ? counselingResponse.data
+          : [];
+        setCounselingHistory(logs);
       } catch (error) {
-        console.log('No counseling history found');
+        console.log('No counseling history found:', error);
         setCounselingHistory([]);
       }
     } catch (error) {
@@ -106,6 +111,8 @@ const StudentProfile = () => {
   }
 
   if (!student) return <PageWrapper>Student not found</PageWrapper>;
+
+  const canLogCounseling = user?.role === 'COUNSELOR' || user?.role === 'MENTOR' || user?.role === 'ADMIN';
 
   return (
     <PageWrapper

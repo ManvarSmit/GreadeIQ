@@ -25,11 +25,15 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const token = sessionStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
       if (!token) {
         setLoading(false);
         return;
       }
+
+      // Sync both storages
+      localStorage.setItem('authToken', token);
+      sessionStorage.setItem('authToken', token);
 
       // Verify token by getting user profile
       const response = await authAPI.getProfile();
@@ -46,9 +50,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await authAPI.login({ email, password });
-      const { user, token } =response.data;
+      const { user, token } = response.data;
       
-      // Store token
+      // Store token in both storages
+      localStorage.setItem('authToken', token);
       sessionStorage.setItem('authToken', token);
       
       // Set user state
@@ -65,6 +70,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    localStorage.removeItem('authToken');
     sessionStorage.removeItem('authToken');
     setUser(null);
     setIsAuthenticated(false);

@@ -535,20 +535,79 @@ export const deleteUser = async (req, res) => {
             });
         }
 
-        // Delete associated profile based on role
+        // Delete associated profile based on role with automatic student reassignment
         if (user.role === 'MENTOR') {
-            // Delete mentor profile (cascades assignments if set up, or leaves orphan assignments? 
-            // MentorAssignment has cascade delete on mentorId, so it's safe if we delete Mentor record)
             const mentor = await prisma.mentor.findUnique({ where: { email: user.email } });
             if (mentor) {
+                // Reassign mentor's students to other active mentors
+                const activeAssignments = await prisma.mentorAssignment.findMany({
+                    where: { mentorId: mentor.id, status: 'ACTIVE' }
+                });
+                const studentIds = activeAssignments.map(a => a.studentId);
+                
+                if (studentIds.length > 0) {
+                    const otherMentors = await prisma.mentor.findMany({
+                        where: { id: { not: mentor.id } }
+                    });
+                    if (otherMentors.length > 0) {
+                        for (let i = 0; i < studentIds.length; i++) {
+                            const targetMentor = otherMentors[i % otherMentors.length];
+                            await prisma.mentorAssignment.create({
+                                data: {
+                                    studentId: studentIds[i],
+                                    mentorId: targetMentor.id,
+                                    assignedBy: req.user.id,
+                                    status: 'ACTIVE'
+                                }
+                            });
+                        }
+                    }
+                    await prisma.mentorAssignment.updateMany({
+                        where: { mentorId: mentor.id },
+                        data: { status: 'DELETED' }
+                    });
+                }
                 await prisma.mentor.delete({ where: { id: mentor.id } });
             }
         } else if (user.role === 'COUNSELOR') {
             const counselor = await prisma.counselor.findUnique({ where: { email: user.email } });
             if (counselor) {
-                // CounselorAssignment likely has cascade delete too?
-                // Let's assume so or it will error if there dependants.
-                // Actually CounselorAssignment usually has cascade on counselorId.
+                // Reassign counselor's students to other active counselors
+                const activeAssignments = await prisma.counselorAssignment.findMany({
+                    where: { counselorId: counselor.id, status: 'ACTIVE' }
+                });
+                const studentIds = activeAssignments.map(a => a.studentId);
+
+                if (studentIds.length > 0) {
+                    const otherCounselors = await prisma.counselor.findMany({
+                        where: { id: { not: counselor.id } },
+                        include: {
+                            assignedStudents: { where: { status: 'ACTIVE' } }
+                        }
+                    });
+
+                    const eligibleCounselors = otherCounselors.filter(c => c.assignedStudents.length < c.maxStudents);
+                    const targetPool = eligibleCounselors.length > 0 ? eligibleCounselors : otherCounselors;
+
+                    if (targetPool.length > 0) {
+                        for (let i = 0; i < studentIds.length; i++) {
+                            const targetCounselor = targetPool[i % targetPool.length];
+                            await prisma.counselorAssignment.create({
+                                data: {
+                                    studentId: studentIds[i],
+                                    counselorId: targetCounselor.id,
+                                    assignedBy: req.user.id,
+                                    status: 'ACTIVE'
+                                }
+                            });
+                        }
+                    }
+
+                    await prisma.counselorAssignment.updateMany({
+                        where: { counselorId: counselor.id },
+                        data: { status: 'DELETED' }
+                    });
+                }
                 await prisma.counselor.delete({ where: { id: counselor.id } });
             }
         }

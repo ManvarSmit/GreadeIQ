@@ -5,40 +5,51 @@ import Badge from '../../components/ui/Badge';
 import StatsCard from '../../components/dashboard/StatsCard';
 import WelcomeBanner from '../../components/dashboard/WelcomeBanner';
 import { useAuth } from '../../contexts/AuthContext';
-import { quizAPI } from '../../services/api';
-import { BookOpen, CheckCircle, TrendingUp, AlertCircle, Clock } from 'lucide-react';
+import { quizAPI, studentAPI } from '../../services/api';
+import { BookOpen, CheckCircle, TrendingUp, AlertCircle, Clock, AlertTriangle } from 'lucide-react';
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [pastAttempts, setPastAttempts] = useState([]);
+  const [studentData, setStudentData] = useState(null);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        setLoading(true);
+        if (user?.id || user?.studentId) {
+          const studentRes = await studentAPI.getById(user.id || user.studentId);
+          setStudentData(studentRes.data || studentRes);
+        }
         const attemptsRes = await quizAPI.getPastAttempts();
         setPastAttempts(attemptsRes.data || []);
       } catch (err) {
-        console.error("Failed to load past attempts", err);
+        console.error("Failed to load student dashboard data", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchDashboardData();
-  }, []);
+  }, [user]);
 
-  // Mock data for student
-  const stats = {
-    attendance: 86,
-    cgpa: 8.4,
-    riskScore: 'LOW',
-    upcomingTests: 2
+  const attendance = studentData?.attendancePercent !== undefined ? Math.round(studentData.attendancePercent) : 86;
+  const cgpa = studentData?.currentCGPA !== undefined ? Number(studentData.currentCGPA).toFixed(1) : '8.4';
+  const riskScore = studentData?.dropoutRisk || 'LOW';
+
+  const riskColorMap = {
+    HIGH: 'danger',
+    MEDIUM: 'warning',
+    LOW: 'success'
   };
 
   const performanceTrend = [
-    { month: 'Jan', cgpa: 7.8 },
-    { month: 'Feb', cgpa: 8.0 },
-    { month: 'Mar', cgpa: 8.1 },
-    { month: 'Apr', cgpa: 8.2 },
-    { month: 'May', cgpa: 8.4 },
+    { month: 'Jan', cgpa: Math.max(2.0, (Number(cgpa) - 0.6)).toFixed(1) },
+    { month: 'Feb', cgpa: Math.max(2.0, (Number(cgpa) - 0.4)).toFixed(1) },
+    { month: 'Mar', cgpa: Math.max(2.0, (Number(cgpa) - 0.2)).toFixed(1) },
+    { month: 'Apr', cgpa: Math.max(2.0, (Number(cgpa) - 0.1)).toFixed(1) },
+    { month: 'May', cgpa: Number(cgpa) },
   ];
 
   return (
@@ -46,31 +57,46 @@ const StudentDashboard = () => {
       <div className="animate-slide-in">
         <WelcomeBanner />
 
+        {/* High Risk Alert Banner */}
+        {riskScore === 'HIGH' && (
+          <div className="mb-6 p-4 rounded-xl bg-danger-500/10 border border-danger-500/30 flex items-start gap-4">
+            <div className="p-2 bg-danger-500/20 text-danger-400 rounded-lg flex-shrink-0">
+              <AlertTriangle size={24} />
+            </div>
+            <div>
+              <h4 className="text-white font-bold text-base">High Risk Status Alert</h4>
+              <p className="text-sm text-dark-muted mt-1">
+                Your current attendance (<span className="text-white font-semibold">{attendance}%</span>) or academic score (<span className="text-white font-semibold">{cgpa} CGPA</span>) requires attention. Please meet your mentor or counselor for guidance.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatsCard
             title="Attendance"
-            value={`${stats.attendance}%`}
+            value={`${attendance}%`}
             icon={CheckCircle}
-            trend={2.5}
-            color={stats.attendance > 75 ? 'success' : 'danger'}
+            trend={attendance < 75 ? -5 : 2.5}
+            color={attendance > 75 ? 'success' : 'danger'}
           />
           <StatsCard
             title="Current CGPA"
-            value={stats.cgpa}
+            value={cgpa}
             icon={TrendingUp}
             trend={0.2}
-            color="primary"
+            color={Number(cgpa) >= 6.5 ? 'primary' : 'danger'}
           />
           <StatsCard
             title="Risk Status"
-            value={stats.riskScore}
+            value={riskScore}
             icon={AlertCircle}
             trendLabel="Based on AI analysis"
-            color="info"
+            color={riskColorMap[riskScore] || 'info'}
           />
           <StatsCard
             title="Upcoming Tests"
-            value={stats.upcomingTests}
+            value={2}
             icon={BookOpen}
             color="warning"
           />

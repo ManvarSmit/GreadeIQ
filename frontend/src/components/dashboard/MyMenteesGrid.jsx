@@ -52,21 +52,11 @@ const MenteeCard = ({ student }) => {
             <div className="flex items-center gap-2">
                 <Button
                     type="button"
-                    variant="outline"
                     size="sm"
-                    className="flex-1 justify-center border-dark-border text-dark-muted hover:text-white hover:border-primary-500 hover:bg-primary-500/10"
+                    className="w-full justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md shadow-indigo-600/25 transition-all border-none"
                     onClick={() => navigate(`/students/${student.id}`)}
                 >
-                    <Eye size={16} className="mr-2" /> Profile
-                </Button>
-                <Button
-                    type="button"
-                    size="sm"
-                    className={`px-4 bg-dark-bg border border-dark-border text-dark-muted hover:text-white ${student.dropoutRisk === 'HIGH' ? 'hover:text-danger-400 hover:border-danger-500/50 hover:bg-danger-500/10 hover:shadow-[0_0_10px_rgba(244,63,94,0.2)]' : 'hover:border-primary-500/50 hover:bg-primary-500/10'}`}
-                    onClick={() => navigate(`/students/${student.id}`)}
-                    title="View risk and profile"
-                >
-                    <AlertTriangle size={16} />
+                    <Eye size={16} className="mr-2 text-indigo-200" /> View Profile & Risk
                 </Button>
             </div>
 

@@ -1,9 +1,12 @@
 import { Calendar, Clock, User, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 
 const CounselingQueue = ({ sessions, onComplete, onCancel }) => {
+    const navigate = useNavigate();
+
     if (!sessions || sessions.length === 0) {
         return (
             <Card className="h-full flex items-center justify-center min-h-[300px] border-dashed">
@@ -73,7 +76,7 @@ const CounselingQueue = ({ sessions, onComplete, onCancel }) => {
                             <Button
                                 variant="secondary"
                                 size="sm"
-                                onClick={() => window.open(`/students/${session.studentId}`, '_blank')} // Open profile
+                                onClick={() => navigate(`/students/${session.studentId}`)}
                                 className="text-dark-muted"
                             >
                                 Profile

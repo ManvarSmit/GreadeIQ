@@ -17,8 +17,8 @@ const api = axios.create({
 // Request interceptor - Attach JWT token to every request
 api.interceptors.request.use(
   (config) => {
-    // Get token from sessionStorage
-    const token = sessionStorage.getItem('authToken');
+    // Get token from localStorage or sessionStorage
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -179,6 +179,7 @@ export const counselingAPI = {
   getQueue: () => api.get('/counseling/queue'),
   createLog: (data) => api.post('/counseling/create', data),
   getHistory: (studentId) => api.get(`/counseling/student/${studentId}`),
+  getByStudent: (studentId) => api.get(`/counseling/student/${studentId}`),
   getMetrics: (studentId) => api.get(`/counseling/student/${studentId}/metrics`),
 };
 
