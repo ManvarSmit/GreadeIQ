@@ -308,3 +308,138 @@ export const getMyCounselorStats = async (req, res) => {
     });
   }
 };
+
+/**
+ * Add/update student marks (Mentor / Admin)
+ * POST /api/mentor/student/:id/marks
+ */
+export const updateStudentMarks = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userEmail = req.user.email;
+    const { subject, examType, marksObtained, totalMarks, date } = req.body;
+
+    if (req.user.role !== 'ADMIN') {
+      const mentor = await prisma.mentor.findUnique({
+        where: { email: userEmail }
+      });
+
+      if (!mentor) {
+        return res.status(404).json({
+          success: false,
+          message: 'Mentor profile not found'
+        });
+      }
+
+      const assignment = await prisma.mentorAssignment.findFirst({
+        where: {
+          studentId: id,
+          mentorId: mentor.id,
+          status: 'ACTIVE'
+        }
+      });
+
+      if (!assignment) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have active mentorship access to this student'
+        });
+      }
+    }
+
+    if (parseFloat(marksObtained) > parseFloat(totalMarks)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Marks obtained cannot exceed total marks'
+      });
+    }
+
+    const assessment = await prisma.assessment.create({
+      data: {
+        studentId: id,
+        subject,
+        examType,
+        marksObtained: parseFloat(marksObtained),
+        totalMarks: parseFloat(totalMarks),
+        date: date ? new Date(date) : new Date()
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      data: assessment,
+      message: 'Marks added successfully'
+    });
+
+  } catch (error) {
+    console.error('Update student marks error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating student marks',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Update student attendance (Mentor / Admin)
+ * POST /api/mentor/student/:id/attendance
+ */
+export const updateStudentAttendance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userEmail = req.user.email;
+    const { date, status, subject } = req.body;
+
+    if (req.user.role !== 'ADMIN') {
+      const mentor = await prisma.mentor.findUnique({
+        where: { email: userEmail }
+      });
+
+      if (!mentor) {
+        return res.status(404).json({
+          success: false,
+          message: 'Mentor profile not found'
+        });
+      }
+
+      const assignment = await prisma.mentorAssignment.findFirst({
+        where: {
+          studentId: id,
+          mentorId: mentor.id,
+          status: 'ACTIVE'
+        }
+      });
+
+      if (!assignment) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have active mentorship access to this student'
+        });
+      }
+    }
+
+    const attendance = await prisma.attendance.create({
+      data: {
+        studentId: id,
+        date: date ? new Date(date) : new Date(),
+        status: status || 'PRESENT',
+        subject: subject || null
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      data: attendance,
+      message: 'Attendance recorded successfully'
+    });
+
+  } catch (error) {
+    console.error('Update student attendance error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error recording attendance',
+      error: error.message
+    });
+  }
+};

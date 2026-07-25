@@ -344,9 +344,82 @@ export const generateQuizQuestions = async (topics, difficulty, numQuestions) =>
     }
 };
 
+export const generateQuizFeedback = async (quizTitle, topics, questionResults) => {
+    try {
+        if (!questionResults || questionResults.length === 0 || questionResults.every(q => q.isCorrect)) {
+            return {
+                overallSummary: "Outstanding performance! You achieved a perfect score, demonstrating complete mastery of all tested topics.",
+                strengths: [topics || "All tested concepts"],
+                weakAreas: [],
+                recommendations: ["Maintain this high standard and continue practicing advanced problem-solving."]
+            };
+        }
+
+        const model = genAI.getGenerativeModel({
+            model: 'gemini-2.5-flash',
+            generationConfig: GEMINI_CONFIG,
+            requestOptions: { timeout: REQUEST_TIMEOUT }
+        });
+
+        const wrongQuestions = questionResults.filter(q => !q.isCorrect);
+        const correctQuestions = questionResults.filter(q => q.isCorrect);
+
+        const prompt = `You are an expert academic tutor analyzing a student's quiz performance.
+Quiz Title: "${quizTitle || 'Academic Quiz'}"
+General Topics: ${topics || 'General Subject Knowledge'}
+
+Question Breakdown:
+- Total Questions: ${questionResults.length}
+- Correct Answers: ${correctQuestions.length}
+- Incorrect Answers: ${wrongQuestions.length}
+
+Questions answered INCORRECTLY by the student:
+${wrongQuestions.map((q, i) => `
+${i + 1}. Question: ${q.question}
+   - Correct Answer: ${q.correctAnswer}
+   - Student Selected: ${q.studentAnswer || 'No Answer'}
+`).join('\n')}
+
+Analyze the wrong answers, infer specific sub-topics where the student is weak, and suggest actionable recommendations.
+
+Please provide a structured response in the following JSON format (output ONLY valid JSON):
+{
+  "overallSummary": "1-2 sentence summary of overall performance and key areas needing review",
+  "strengths": ["specific topic or concept the student answered correctly"],
+  "weakAreas": [
+    {
+      "topic": "specific sub-topic name (e.g., Recursion, Memory Allocation, Normalization)",
+      "reason": "brief reason based on the wrong answer"
+    }
+  ],
+  "recommendations": [
+    "actionable practice suggestion tied to a weak area"
+  ]
+}
+
+IMPORTANT: Keep bullet points concise and directly actionable. Return ONLY valid JSON.`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+
+        let jsonText = text.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
+        const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            jsonText = jsonMatch[0];
+        }
+
+        return JSON.parse(jsonText);
+    } catch (error) {
+        console.error('Gemini Quiz Feedback Error:', error);
+        return null;
+    }
+};
+
 export default {
     analyzeStudentProblems,
     suggestMentors,
     generateStudentImprovementPlan,
-    generateQuizQuestions
+    generateQuizQuestions,
+    generateQuizFeedback
 };

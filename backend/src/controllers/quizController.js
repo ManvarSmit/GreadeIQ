@@ -1,6 +1,7 @@
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 import { errorResponse, successResponse } from '../utils/helpers.js';
+import { generateQuizFeedback } from '../services/geminiService.js';
 
 // Counselors create quizzes
 export const createQuiz = async (req, res) => {
@@ -227,22 +228,40 @@ export const submitQuizAttempt = async (req, res) => {
       return res.status(400).json(errorResponse('Attempt already completed', 400));
     }
 
-    // Calculate score
+    // Calculate score & build questionResults for Gemini feedback
     let score = 0;
     const questions = attempt.quiz.questions;
+    const questionResults = [];
     
     // answers should be object { questionId: 'selectedOptionText' }
     for (const q of questions) {
-      const studentAnswer = answers[q.id];
-      if (studentAnswer && studentAnswer === q.correctAnswer) {
+      const studentAnswer = answers[q.id] || null;
+      let parsedOptions = [];
+      try {
+        parsedOptions = typeof q.options === 'string' ? JSON.parse(q.options) : q.options;
+      } catch (e) {
+        parsedOptions = [q.options];
+      }
+
+      const isCorrect = !!(studentAnswer && studentAnswer === q.correctAnswer);
+
+      if (isCorrect) {
         score += q.marks;
       } else if (studentAnswer) {
         // Negative marking
         score -= attempt.quiz.negativeMarking;
       }
+
+      questionResults.push({
+        question: q.question,
+        options: parsedOptions,
+        correctAnswer: q.correctAnswer,
+        studentAnswer,
+        isCorrect
+      });
     }
 
-    const updatedAttempt = await prisma.quizAttempt.update({
+    let updatedAttempt = await prisma.quizAttempt.update({
       where: { id: attemptId },
       data: {
         score,
@@ -251,6 +270,27 @@ export const submitQuizAttempt = async (req, res) => {
         isAutoSubmitted: isAutoSubmitted || false
       }
     });
+
+    // Generate AI Personalized Feedback
+    let aiFeedbackObj = null;
+    try {
+      aiFeedbackObj = await generateQuizFeedback(
+        attempt.quiz.title,
+        attempt.quiz.topics,
+        questionResults
+      );
+
+      if (aiFeedbackObj) {
+        updatedAttempt = await prisma.quizAttempt.update({
+          where: { id: attemptId },
+          data: {
+            aiFeedback: JSON.stringify(aiFeedbackObj)
+          }
+        });
+      }
+    } catch (aiErr) {
+      logger.warn(`Could not generate AI quiz feedback: ${aiErr.message}`);
+    }
 
     // Automatically record quiz marks into student's Assessment records & Risk Engine!
     try {
@@ -269,7 +309,7 @@ export const submitQuizAttempt = async (req, res) => {
       logger.warn(`Could not create assessment record for quiz attempt: ${assessErr.message}`);
     }
 
-    res.json(successResponse({ score, attempt: updatedAttempt }, 'Quiz submitted successfully'));
+    res.json(successResponse({ score, attempt: updatedAttempt, aiFeedback: aiFeedbackObj }, 'Quiz submitted successfully'));
   } catch (error) {
     logger.error(`Submit quiz error: ${error.message}`);
     res.status(500).json(errorResponse('Failed to submit quiz', 500));

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
 import Card from '../components/ui/Card';
 import CSVUploadCard from '../components/ui/CSVUploadCard';
-import { counselorAPI, attendanceAPI, academicAPI } from '../services/api';
+import { mentorAPI, counselorAPI, attendanceAPI, academicAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import { 
     Calendar, 
@@ -77,7 +77,7 @@ const CounselorDataManagement = () => {
     const fetchMyStudents = async () => {
         try {
             setLoading(true);
-            const response = await counselorAPI.getMyStudents();
+            const response = await mentorAPI.getMyStudents();
             setStudents(response.data || []);
         } catch (err) { // eslint-disable-line no-unused-vars
             error('Failed to fetch students');
@@ -113,21 +113,19 @@ const CounselorDataManagement = () => {
 
         try {
             if (entryType === 'attendance') {
-                await attendanceAPI.create({
-                    studentId: selectedStudent,
+                await mentorAPI.updateStudentAttendance(selectedStudent, {
                     date: attendanceDate,
                     status: attendanceStatus,
                     subject: attendanceSubject || undefined
                 });
                 success('Attendance record added successfully');
             } else {
-                await academicAPI.createAssessment({
-                    studentId: selectedStudent,
-                    examName,
+                await mentorAPI.updateStudentMarks(selectedStudent, {
                     subject,
+                    examType: examName,
                     marksObtained: parseFloat(marksObtained),
                     totalMarks: parseFloat(totalMarks),
-                    semester: parseInt(semester)
+                    date: new Date()
                 });
                 success('Assessment record added successfully');
             }
@@ -135,7 +133,7 @@ const CounselorDataManagement = () => {
             resetForm();
             setRefreshKey(prev => prev + 1);
         } catch (err) {
-            error(err.message || `Failed to add ${entryType}`);
+            error(err.response?.data?.message || err.message || `Failed to add ${entryType}`);
         }
     };
 

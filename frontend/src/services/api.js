@@ -150,14 +150,14 @@ export const mentorAPI = {
   getMyCounselors: () => api.get('/mentor/my-counselors'),
   getStudentsByCounselor: (counselorId) => api.get(`/mentor/counselor/${counselorId}/students`),
   getCounselorStats: () => api.get('/mentor/counselor-stats'),
+  updateStudentMarks: (id, data) => api.post(`/mentor/student/${id}/marks`, data),
+  updateStudentAttendance: (id, data) => api.post(`/mentor/student/${id}/attendance`, data),
 };
 
 // ==================== COUNSELOR ENDPOINTS ====================
 export const counselorAPI = {
   getMyStudents: () => api.get('/counselor/my-students'),
   updateStudentDetails: (id, data) => api.put(`/counselor/student/${id}/details`, data),
-  updateStudentMarks: (id, data) => api.post(`/counselor/student/${id}/marks`, data),
-  updateStudentAttendance: (id, data) => api.post(`/counselor/student/${id}/attendance`, data),
   getMyStats: () => api.get('/counselor/stats'),
 };
 

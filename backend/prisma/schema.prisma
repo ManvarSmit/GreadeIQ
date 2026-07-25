@@ -331,6 +331,7 @@ model QuizAttempt {
   submitTime      DateTime?
   isAutoSubmitted Boolean         @default(false)
   status          String          @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, ABORTED
+  aiFeedback      String?         @db.Text
   
   violations      ViolationLog[]
 
