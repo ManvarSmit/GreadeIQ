@@ -8,7 +8,11 @@ import {
   exportPDF
 } from '../controllers/analyticsController.js';
 
+import { authenticate } from '../middleware/auth.js';
+
 const router = express.Router();
+
+router.use(authenticate);
 
 // Analytics endpoints
 router.get('/department-risk', getDepartmentRisk);

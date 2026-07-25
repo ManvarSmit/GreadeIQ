@@ -3,7 +3,7 @@ import logger from '../utils/logger.js';
 import { errorResponse, successResponse } from '../utils/helpers.js';
 import { generateQuizFeedback } from '../services/geminiService.js';
 
-// Counselors create quizzes
+// Faculty Mentors create academic quizzes
 export const createQuiz = async (req, res) => {
   try {
     if (req.user.role !== 'MENTOR') {
@@ -12,12 +12,14 @@ export const createQuiz = async (req, res) => {
 
     const { title, description, topics, durationMinutes, difficulty, negativeMarking, questions } = req.body;
 
-    // Find mentor or counselor footprint for database relations
+    // Find mentor record for database relations
     const mentor = await prisma.mentor.findUnique({
       where: { email: req.user.email }
     });
 
-    let counselor = await prisma.counselor.findFirst();
+    if (!mentor) {
+      return res.status(404).json(errorResponse('Mentor profile not found', 404));
+    }
 
     if (!questions || !Array.isArray(questions)) {
       return res.status(400).json(errorResponse('Questions array is required', 400));
@@ -25,8 +27,7 @@ export const createQuiz = async (req, res) => {
 
     const quiz = await prisma.quiz.create({
       data: {
-        mentorId: mentor ? mentor.id : null,
-        counselorId: counselor ? counselor.id : null,
+        mentorId: mentor.id,
         title,
         description,
         topics,
@@ -47,7 +48,7 @@ export const createQuiz = async (req, res) => {
       }
     });
 
-    logger.info(`Quiz created: ${quiz.id} by ${req.user.email}`);
+    logger.info(`Quiz created: ${quiz.id} by mentor ${req.user.email}`);
     res.status(201).json(successResponse(quiz, 'Quiz created successfully'));
   } catch (error) {
     logger.error(`Create quiz error: ${error.message}`);
@@ -55,17 +56,17 @@ export const createQuiz = async (req, res) => {
   }
 };
 
-// Get all quizzes created by counselor
+// Get all quizzes created by logged-in mentor
 export const getMyQuizzes = async (req, res) => {
   try {
-    const counselor = await prisma.counselor.findUnique({
+    const mentor = await prisma.mentor.findUnique({
       where: { email: req.user.email }
     });
 
-    if (!counselor) return res.status(404).json(errorResponse('Counselor profile not found', 404));
+    if (!mentor) return res.status(404).json(errorResponse('Mentor profile not found', 404));
 
     const quizzes = await prisma.quiz.findMany({
-      where: { counselorId: counselor.id },
+      where: { mentorId: mentor.id },
       include: {
         _count: {
           select: { attempts: true }

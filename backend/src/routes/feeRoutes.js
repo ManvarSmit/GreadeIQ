@@ -1,8 +1,11 @@
 import express from 'express';
 import multer from 'multer';
 import { uploadFeesCSV, getAllFees, getFeeByStudentId } from '../controllers/feeController.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
+
+router.use(authenticate);
 
 // Configure multer for CSV upload
 const upload = multer({

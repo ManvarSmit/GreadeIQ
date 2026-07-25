@@ -9,7 +9,11 @@ import {
   checkSLA
 } from '../controllers/interventionController.js';
 
+import { authenticate } from '../middleware/auth.js';
+
 const router = express.Router();
+
+router.use(authenticate);
 
 // Mentor assignment
 router.post('/assign-mentor', assignMentorToStudent);

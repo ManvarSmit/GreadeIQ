@@ -7,7 +7,11 @@ import {
   getMentorImpact
 } from '../controllers/reportingController.js';
 
+import { authenticate } from '../middleware/auth.js';
+
 const router = express.Router();
+
+router.use(authenticate);
 
 // Student-level reports
 router.get('/student/:id/impact', getStudentImpact);

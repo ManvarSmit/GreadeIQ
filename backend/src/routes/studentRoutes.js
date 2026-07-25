@@ -17,7 +17,11 @@ import {
   validateQueryParams
 } from '../middleware/validation.js';
 
+import { authenticate, authorizeRole } from '../middleware/auth.js';
+
 const router = express.Router();
+
+router.use(authenticate);
 
 // Configure multer for CSV upload (memory storage)
 const upload = multer({
