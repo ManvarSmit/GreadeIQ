@@ -1,5 +1,5 @@
 import express from 'express';
-import { analyzeStudent, suggestMentorsForStudent, getStudentImprovementPlan, autoAssignMentor, aiGenerateQuiz } from '../controllers/aiController.js';
+import { analyzeStudent, suggestMentorsForStudent, getStudentImprovementPlan, autoAssignMentor } from '../controllers/aiController.js';
 import { authenticate, authorizeRole } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -27,12 +27,6 @@ router.post('/auto-assign/:studentId',
     authenticate,
     authorizeRole('ADMIN', 'COUNSELOR'),
     autoAssignMentor
-);
-
-router.post('/generate-quiz',
-    authenticate,
-    authorizeRole('ADMIN', 'COUNSELOR'),
-    aiGenerateQuiz
 );
 
 export default router;

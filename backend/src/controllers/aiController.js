@@ -374,30 +374,10 @@ export const autoAssignMentor = async (req, res) => {
     }
 };
 
-export const aiGenerateQuiz = async (req, res) => {
-    try {
-        if (req.user.role !== 'COUNSELOR' && req.user.role !== 'ADMIN') {
-            return res.status(403).json({ success: false, message: 'Forbidden' });
-        }
-        
-        const { topics, difficulty, numQuestions } = req.body;
-        
-        if (!topics) return res.status(400).json({ success: false, message: 'Topics required' });
-
-        const questions = await generateQuizQuestions(topics, difficulty || 'MEDIUM', numQuestions || 5);
-        
-        res.json({ success: true, data: questions });
-    } catch (error) {
-        console.error('AI Quiz Gen Error:', error);
-        res.status(500).json({ success: false, message: 'Failed to generate quiz', error: error.message });
-    }
-};
-
 export default {
     analyzeStudent,
     suggestMentorsForStudent,
     getStudentImprovementPlan,
-    autoAssignMentor,
-    aiGenerateQuiz
+    autoAssignMentor
 };
 // force reload 02/07/2026 15:46:34

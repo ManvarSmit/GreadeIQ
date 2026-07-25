@@ -5,25 +5,18 @@ import { errorResponse, successResponse } from '../utils/helpers.js';
 // Counselors create quizzes
 export const createQuiz = async (req, res) => {
   try {
-    if (req.user.role !== 'MENTOR' && req.user.role !== 'ADMIN') {
-      return res.status(403).json(errorResponse('Only mentors or admins can create academic quizzes', 403));
+    if (req.user.role !== 'MENTOR') {
+      return res.status(403).json(errorResponse('Only faculty mentors can create academic quizzes', 403));
     }
 
     const { title, description, topics, durationMinutes, difficulty, negativeMarking, questions } = req.body;
 
-    // Find counselor or create system footprint for schema relation
-    let counselor = await prisma.counselor.findFirst();
-    if (!counselor) {
-      counselor = await prisma.counselor.create({
-        data: {
-          name: 'Academic Department',
-          email: 'academic@university.edu',
-          department: 'Academic'
-        }
-      });
-    }
+    // Find mentor or counselor footprint for database relations
+    const mentor = await prisma.mentor.findUnique({
+      where: { email: req.user.email }
+    });
 
-    const counselorId = counselor.id;
+    let counselor = await prisma.counselor.findFirst();
 
     if (!questions || !Array.isArray(questions)) {
       return res.status(400).json(errorResponse('Questions array is required', 400));
@@ -31,7 +24,8 @@ export const createQuiz = async (req, res) => {
 
     const quiz = await prisma.quiz.create({
       data: {
-        counselorId,
+        mentorId: mentor ? mentor.id : null,
+        counselorId: counselor ? counselor.id : null,
         title,
         description,
         topics,

@@ -35,7 +35,6 @@ const Sidebar = () => {
     { path: '/counseling/queue', icon: ClipboardList, label: 'Counseling Queue', roles: ['COUNSELOR'] },
     { path: '/counseling/analytics', icon: BarChart3, label: 'My Analytics', roles: ['COUNSELOR'] },
     { path: '/counseling/data', icon: Database, label: 'Manage Data', roles: ['COUNSELOR'] },
-    { path: '/counseling/quizzes', icon: BookOpen, label: 'Manage Quizzes', roles: ['COUNSELOR', 'ADMIN'] },
 
     // Student Specific
     { path: '/student/dashboard', icon: LayoutDashboard, label: 'My Dashboard', roles: ['STUDENT'] },

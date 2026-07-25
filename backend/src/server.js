@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import logger from './utils/logger.js';
 
 // Load environment variables
 dotenv.config();

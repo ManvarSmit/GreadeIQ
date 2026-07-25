@@ -142,6 +142,7 @@ model Mentor {
   maxStudents          Int                           @default(10)
   assignedStudents     MentorAssignment[]
   counselorAssignments MentorCounselorAssignment[]
+  quizzes              Quiz[]
   createdAt            DateTime                      @default(now())
   
   @@map("mentors")
@@ -287,8 +288,10 @@ model MentorCounselorAssignment {
 
 model Quiz {
   id              String         @id @default(uuid())
-  counselorId     String
-  counselor       Counselor      @relation(fields: [counselorId], references: [id], onDelete: Cascade)
+  counselorId     String?
+  counselor       Counselor?     @relation(fields: [counselorId], references: [id], onDelete: Cascade)
+  mentorId        String?
+  mentor          Mentor?        @relation(fields: [mentorId], references: [id], onDelete: Cascade)
   title           String
   description     String?
   topics          String         // Comma-separated or JSON
