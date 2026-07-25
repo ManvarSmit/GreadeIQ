@@ -5,28 +5,22 @@ import { errorResponse, successResponse } from '../utils/helpers.js';
 // Counselors create quizzes
 export const createQuiz = async (req, res) => {
   try {
-    if (req.user.role !== 'COUNSELOR' && req.user.role !== 'ADMIN') {
-      return res.status(403).json(errorResponse('Only counselors or admins can create quizzes', 403));
+    if (req.user.role !== 'MENTOR' && req.user.role !== 'ADMIN') {
+      return res.status(403).json(errorResponse('Only mentors or admins can create academic quizzes', 403));
     }
 
     const { title, description, topics, durationMinutes, difficulty, negativeMarking, questions } = req.body;
 
-    // Find counselor ID
-    let counselor = await prisma.counselor.findUnique({
-      where: { email: req.user.email }
-    });
-
-    if (!counselor && req.user.role === 'ADMIN') {
-      // Auto-create an admin counselor footprint so foreign keys don't break postgres
+    // Find counselor or create system footprint for schema relation
+    let counselor = await prisma.counselor.findFirst();
+    if (!counselor) {
       counselor = await prisma.counselor.create({
-         data: {
-             name: 'System Admin',
-             email: req.user.email,
-             department: 'Administration',
-         }
+        data: {
+          name: 'Academic Department',
+          email: 'academic@university.edu',
+          department: 'Academic'
+        }
       });
-    } else if (!counselor) {
-      return res.status(404).json(errorResponse('Counselor profile not found', 404));
     }
 
     const counselorId = counselor.id;
@@ -263,6 +257,23 @@ export const submitQuizAttempt = async (req, res) => {
         isAutoSubmitted: isAutoSubmitted || false
       }
     });
+
+    // Automatically record quiz marks into student's Assessment records & Risk Engine!
+    try {
+      const totalMarks = questions.reduce((sum, q) => sum + (q.marks || 1), 0);
+      await prisma.assessment.create({
+        data: {
+          studentId: attempt.studentId,
+          subject: attempt.quiz.topics || 'Academic Quiz',
+          examType: 'QUIZ',
+          marksObtained: Math.max(0, score),
+          totalMarks: totalMarks > 0 ? totalMarks : 10,
+          date: new Date()
+        }
+      });
+    } catch (assessErr) {
+      logger.warn(`Could not create assessment record for quiz attempt: ${assessErr.message}`);
+    }
 
     res.json(successResponse({ score, attempt: updatedAttempt }, 'Quiz submitted successfully'));
   } catch (error) {

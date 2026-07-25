@@ -9,8 +9,8 @@ const CounselorQuizzes = () => {
                 <WelcomeBanner />
 
                 <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-white tracking-wide mb-2">Quiz Management</h2>
-                    <p className="text-dark-muted">Design and deploy AI-generated technical assessments with built-in anti-cheat.</p>
+                    <h2 className="text-2xl font-bold text-white tracking-wide mb-2">Academic Assessment & Quiz Creator</h2>
+                    <p className="text-dark-muted">Create and deploy course assessments with built-in anti-cheat proctoring.</p>
                 </div>
 
                 <div className="mt-8">
