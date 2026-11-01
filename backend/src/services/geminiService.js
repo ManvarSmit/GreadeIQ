@@ -291,58 +291,7 @@ export const suggestMentors = async (studentData, availableMentors) => {
     }
 };
 
-export const generateQuizQuestions = async (topics, difficulty, numQuestions) => {
-    try {
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash',
-            generationConfig: {
-                ...GEMINI_CONFIG,
-                responseMimeType: 'application/json'
-            },
-            requestOptions: { timeout: REQUEST_TIMEOUT }
-        });
 
-        const prompt = `You are an expert educator. Generate a multiple-choice quiz.
-        Topics: ${topics}
-        Difficulty: ${difficulty}
-        Number of Questions: ${numQuestions}
-
-        Respond in the following JSON format (output ONLY valid JSON array):
-        [
-            {
-                "question": "The question text. Use single quotes (') inside, NEVER double quotes.",
-                "options": ["Option A", "Option B", "Option C", "Option D"],
-                "correctAnswer": "The exact text of the correct option. NEVER use double quotes.",
-                "marks": 1.0
-            }
-        ]
-        
-        CRITICAL RULES:
-        1. Ensure your JSON array is strictly valid.
-        2. DO NOT use double quotes (") anywhere INSIDE your question or option strings. Use single quotes (') instead.
-        3. Return ONLY the raw JSON array.`;
-
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let text = response.text();
-
-        let jsonText = text.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
-        const jsonMatch = jsonText.match(/\[[\s\S]*\]/);
-        if (jsonMatch) {
-            jsonText = jsonMatch[0];
-        }
-
-        try {
-            return JSON.parse(jsonText);
-        } catch (parseErr) {
-            console.error('Quiz JSON parsing failed. Output was:', jsonText);
-            throw new Error('The AI engine returned malformed JSON text. Please try generating again.');
-        }
-    } catch (error) {
-        console.error('Gemini Quiz Gen Error:', error);
-        throw new Error(`Failed to generate quiz: ${error.message}`);
-    }
-};
 
 export const generateQuizFeedback = async (quizTitle, topics, questionResults) => {
     try {
@@ -420,6 +369,5 @@ export default {
     analyzeStudentProblems,
     suggestMentors,
     generateStudentImprovementPlan,
-    generateQuizQuestions,
     generateQuizFeedback
 };

@@ -1,5 +1,5 @@
 import prisma from '../config/database.js';
-import { analyzeStudentProblems, suggestMentors, generateStudentImprovementPlan, generateQuizQuestions } from '../services/geminiService.js';
+import { analyzeStudentProblems, suggestMentors, generateStudentImprovementPlan } from '../services/geminiService.js';
 
 /**
  * Analyze student problems using Gemini AI
