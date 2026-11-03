@@ -47,7 +47,7 @@ router.get('/stats', getStudentStats);
 router.post('/upload/csv', upload.single('file'), bulkUploadStudents);
 
 // Clear all data route (DANGER - Admin only, must be before /:id routes)
-router.delete('/clear-all', clearAllData);
+router.delete('/clear-all', authorizeRole('ADMIN'), clearAllData);
 
 // Parameterized routes (must be last to avoid catching other routes)
 router.get('/:id', validateStudentId, getStudentById);

@@ -39,22 +39,22 @@ const Analytics = () => {
       const params = selectedSemester ? { semester: selectedSemester } : {};
 
       // Fetch all analytics data
-      const [deptData, subjData, semData, studentsResponse] = await Promise.all([
+      const [deptData, subjData, semData, statsResponse] = await Promise.all([
         analyticsAPI.getDepartmentRisk(params),
         analyticsAPI.getSubjectFailures(),
         analyticsAPI.getSemesterTransition(),
-        studentAPI.getAll({ limit: 1000 })
+        studentAPI.getStats()
       ]);
 
       setDepartmentRisk(deptData.data || []);
       setSubjectFailures(subjData.data || []);
       setSemesterTransition(semData.data || []);
 
-      // Calculate stats
-      const students = studentsResponse.data || [];
-      const totalStudents = students.length;
-      const highRisk = students.filter(s => s.dropoutRisk === 'HIGH').length;
-      const lowRisk = students.filter(s => s.dropoutRisk === 'LOW' || !s.dropoutRisk).length;
+      const statsData = statsResponse.data?.data || statsResponse.data || {};
+      const totalStudents = statsData.totalStudents || 0;
+      const byRisk = statsData.byDropoutRisk || [];
+      const highRisk = byRisk.find(r => r.dropoutRisk === 'HIGH')?._count || 0;
+      const lowRisk = byRisk.find(r => r.dropoutRisk === 'LOW')?._count || 0;
 
       setStats({
         successRate: totalStudents > 0 ? ((lowRisk / totalStudents) * 100).toFixed(1) : 0,

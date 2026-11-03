@@ -5,37 +5,78 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
-    // Check if admin exists
-    const existingAdmin = await prisma.user.findFirst({
-      where: { role: 'ADMIN' }
-    });
+    const adminPassHash = await bcrypt.hash('admin123', 10);
+    const mentorPassHash = await bcrypt.hash('mentor123', 10);
+    const counselorPassHash = await bcrypt.hash('counselor123', 10);
 
-    if (existingAdmin) {
-      console.log('✅ Admin user already exists:');
-      console.log(`   Email: ${existingAdmin.email}`);
-      console.log(`   Name: ${existingAdmin.name}`);
-      return;
-    }
-
-    // Create admin
-    const hashedPassword = await bcrypt.hashSync('admin123', 10);
-
-    const admin = await prisma.user.create({
-      data: {
+    // 1. Admin
+    await prisma.user.upsert({
+      where: { email: 'admin@university.edu' },
+      update: { isActive: true },
+      create: {
         email: 'admin@university.edu',
-        password: hashedPassword,
+        password: adminPassHash,
         name: 'System Administrator',
-        role: 'ADMIN'
+        role: 'ADMIN',
+        isActive: true
       }
     });
 
-    console.log('\n✅ Admin user created successfully!');
+    // 2. Mentor
+    await prisma.user.upsert({
+      where: { email: 'mentor@university.edu' },
+      update: { password: mentorPassHash, isActive: true },
+      create: {
+        email: 'mentor@university.edu',
+        password: mentorPassHash,
+        name: 'Senior Mentor',
+        role: 'MENTOR',
+        isActive: true
+      }
+    });
+
+    await prisma.mentor.upsert({
+      where: { email: 'mentor@university.edu' },
+      update: {},
+      create: {
+        email: 'mentor@university.edu',
+        name: 'Senior Mentor',
+        department: 'Computer Science',
+        maxStudents: 20
+      }
+    });
+
+    // 3. Counselor
+    await prisma.user.upsert({
+      where: { email: 'counselor@university.edu' },
+      update: { password: counselorPassHash, isActive: true },
+      create: {
+        email: 'counselor@university.edu',
+        password: counselorPassHash,
+        name: 'Head Counselor',
+        role: 'COUNSELOR',
+        isActive: true
+      }
+    });
+
+    await prisma.counselor.upsert({
+      where: { email: 'counselor@university.edu' },
+      update: {},
+      create: {
+        email: 'counselor@university.edu',
+        name: 'Head Counselor',
+        department: 'Computer Science',
+        maxStudents: 30
+      }
+    });
+
+    console.log('\n✅ Demo Users Ready:');
     console.log('==========================================');
-    console.log('📧 Email: admin@university.edu');
-    console.log('🔑 Password: admin123');
-    console.log('👤 Role: ADMIN');
-    console.log('==========================================');
-    console.log('⚠️  Please change this password after first login!\n');
+    console.log('👑 Admin:     admin@university.edu      / admin123');
+    console.log('🧑‍🏫 Mentor:    mentor@university.edu     / mentor123');
+    console.log('🩺 Counselor: counselor@university.edu  / counselor123');
+    console.log('🎓 Student:   23dcs001@charusat.edu.in  / 23dcs001');
+    console.log('==========================================\n');
 
   } catch (error) {
     console.error('❌ Error:', error.message);

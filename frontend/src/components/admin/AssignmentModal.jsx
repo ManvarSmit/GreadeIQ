@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, UserPlus, UserCog, Filter, Users, Search, Check } from 'lucide-react';
 import Button from '../ui/Button';
@@ -46,10 +46,18 @@ const AssignmentModal = ({
         }
     }, [isOpen, initialType]);
 
-    if (!isOpen) return null;
+    // Memoized helper calculations
+    const uniqueDepartments = useMemo(() => {
+        const depts = [...new Set(students.map(s => s.department))];
+        return depts.filter(Boolean).sort();
+    }, [students]);
 
-    // Helper functions
-    const getAvailableStudents = () => {
+    const uniqueSemesters = useMemo(() => {
+        const sems = [...new Set(students.map(s => s.semester))];
+        return sems.filter(s => s && !isNaN(s)).sort((a, b) => a - b);
+    }, [students]);
+
+    const availableStudents = useMemo(() => {
         const assignedStudentIds = new Set();
         counselors.forEach(counselor => {
             if (counselor.assignedStudents) {
@@ -62,15 +70,12 @@ const AssignmentModal = ({
         let available = students.filter(student => !assignedStudentIds.has(student.id));
 
         if (filterDepartment) {
-            available = available.filter(student =>
-                student.department && student.department === filterDepartment
-            );
+            available = available.filter(student => student.department === filterDepartment);
         }
 
         if (filterSemester) {
-            available = available.filter(student =>
-                student.semester && student.semester === parseInt(filterSemester)
-            );
+            const semInt = parseInt(filterSemester);
+            available = available.filter(student => student.semester === semInt);
         }
 
         if (searchTerm) {
@@ -82,20 +87,12 @@ const AssignmentModal = ({
         }
 
         return available;
-    };
+    }, [counselors, students, filterDepartment, filterSemester, searchTerm]);
 
-    const getUniqueDepartments = () => {
-        const depts = [...new Set(students.map(s => s.department))];
-        return depts.filter(d => d).sort();
-    };
-
-    const getUniqueSemesters = () => {
-        const sems = [...new Set(students.map(s => s.semester))];
-        return sems.filter(s => s && !isNaN(s)).sort((a, b) => a - b);
-    };
+    if (!isOpen) return null;
 
     const handleRangeSelection = () => {
-        const available = getAvailableStudents();
+        const available = availableStudents;
         const start = Math.max(1, rangeStart) - 1;
         const end = Math.min(rangeEnd, available.length);
         const selectedIds = available.slice(start, end).map(s => s.id);
@@ -255,7 +252,7 @@ const AssignmentModal = ({
                                     <div className="bg-indigo-950/20 rounded-xl p-4 border border-indigo-500/20">
                                         <AIAssignment
                                             studentId={selectedStudents[0]}
-                                            studentName={getAvailableStudents().find(s => s.id === selectedStudents[0])?.name}
+                                            studentName={availableStudents.find(s => s.id === selectedStudents[0])?.name}
                                             onMentorSelect={(mentorId) => {
                                                 setSelectedMentor(mentorId);
                                             }}
@@ -273,7 +270,7 @@ const AssignmentModal = ({
                                             className="w-full pl-9 pr-8 py-2 text-sm bg-dark-bg border border-dark-border rounded-lg text-white focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 appearance-none outline-none"
                                         >
                                             <option value="">All Departments</option>
-                                            {getUniqueDepartments().map(dept => (
+                                            {uniqueDepartments.map(dept => (
                                                 <option key={dept} value={dept}>{dept}</option>
                                             ))}
                                         </select>
@@ -285,7 +282,7 @@ const AssignmentModal = ({
                                             className="w-full px-4 py-2 text-sm bg-dark-bg border border-dark-border rounded-lg text-white focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 appearance-none outline-none"
                                         >
                                             <option value="">All Semesters</option>
-                                            {getUniqueSemesters().map(sem => (
+                                            {uniqueSemesters.map(sem => (
                                                 <option key={sem} value={sem}>Semester {sem}</option>
                                             ))}
                                         </select>
@@ -296,7 +293,7 @@ const AssignmentModal = ({
                                     <div className="bg-dark-bg border border-dark-border rounded-xl p-4 space-y-4">
                                         <p className="text-sm font-medium text-dark-muted flex items-center gap-2">
                                             <Users size={16} className="text-indigo-600" />
-                                            {getAvailableStudents().length} available students match filters
+                                            {availableStudents.length} available students match filters
                                         </p>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
@@ -304,7 +301,7 @@ const AssignmentModal = ({
                                                 <input
                                                     type="number"
                                                     min="1"
-                                                    max={getAvailableStudents().length}
+                                                    max={availableStudents.length}
                                                     value={rangeStart}
                                                     onChange={(e) => setRangeStart(parseInt(e.target.value) || 1)}
                                                     className="w-full px-3 py-2 bg-dark-bg border border-dark-border text-white rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
@@ -315,7 +312,7 @@ const AssignmentModal = ({
                                                 <input
                                                     type="number"
                                                     min="1"
-                                                    max={getAvailableStudents().length}
+                                                    max={availableStudents.length}
                                                     value={rangeEnd}
                                                     onChange={(e) => setRangeEnd(parseInt(e.target.value) || 1)}
                                                     className="w-full px-3 py-2 bg-dark-bg border border-dark-border text-white rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
@@ -336,7 +333,7 @@ const AssignmentModal = ({
                                                     <p className="text-xs font-semibold text-dark-muted uppercase">Selection Preview</p>
                                                 </div>
                                                 <div className="max-h-32 overflow-y-auto p-2 space-y-1">
-                                                    {getAvailableStudents()
+                                                    {availableStudents
                                                         .filter(s => selectedStudents.includes(s.id))
                                                         .map(student => (
                                                             <div key={student.id} className="text-sm text-dark-muted px-2 py-1 rounded hover:bg-dark-bg flex justify-between">
@@ -363,13 +360,13 @@ const AssignmentModal = ({
 
                                         <div className="border border-dark-border rounded-xl overflow-hidden bg-dark-bg/50 h-64 flex flex-col">
                                             <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                                                {getAvailableStudents().length === 0 ? (
+                                                {availableStudents.length === 0 ? (
                                                     <div className="flex flex-col items-center justify-center h-full text-slate-400">
                                                         <Search size={24} className="mb-2 opacity-50" />
                                                         <p className="text-sm">No students found</p>
                                                     </div>
                                                 ) : (
-                                                    getAvailableStudents().map(student => (
+                                                    availableStudents.map(student => (
                                                         <motion.div
                                                             key={student.id}
                                                             whileHover={{ scale: 1.005, backgroundColor: 'rgba(255,255,255,0.02)' }}

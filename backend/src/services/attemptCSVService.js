@@ -1,6 +1,5 @@
 import fs from 'fs';
 import csvParser from 'csv-parser';
-import { format } from 'fast-csv';
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 
@@ -95,74 +94,6 @@ export const importAttemptsFromCSV = async (filePath) => {
   });
 };
 
-/**
- * Export course attempts to CSV
- */
-export const exportAttemptsToCSV = async (outputPath, filters = {}) => {
-  try {
-    const where = {};
-    
-    if (filters.studentId) {
-      const student = await prisma.student.findUnique({
-        where: { studentId: filters.studentId },
-        select: { id: true }
-      });
-      if (student) where.studentId = student.id;
-    }
-
-    if (filters.passFail) {
-      where.passFail = filters.passFail.toUpperCase();
-    }
-
-    const attempts = await prisma.courseAttempt.findMany({
-      where,
-      include: {
-        student: {
-          select: { studentId: true, name: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    const writeStream = fs.createWriteStream(outputPath);
-    const csvStream = format({ headers: true });
-    csvStream.pipe(writeStream);
-
-    attempts.forEach(attempt => {
-      csvStream.write({
-        studentId: attempt.student.studentId,
-        studentName: attempt.student.name,
-        courseCode: attempt.courseCode,
-        attemptNumber: attempt.attemptNumber,
-        passFail: attempt.passFail,
-        grade: attempt.grade || ''
-      });
-    });
-
-    csvStream.end();
-
-    return new Promise((resolve, reject) => {
-      writeStream.on('finish', () => {
-        logger.info(`CSV Export: ${attempts.length} course attempts exported`);
-        resolve({
-          success: true,
-          exported: attempts.length,
-          filePath: outputPath
-        });
-      });
-
-      writeStream.on('error', (error) => {
-        logger.error(`CSV Export Error: ${error.message}`);
-        reject(error);
-      });
-    });
-  } catch (error) {
-    logger.error(`CSV Export Error: ${error.message}`);
-    throw error;
-  }
-};
-
 export default {
-  importAttemptsFromCSV,
-  exportAttemptsToCSV
+  importAttemptsFromCSV
 };

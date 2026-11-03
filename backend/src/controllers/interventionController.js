@@ -1,7 +1,6 @@
 import prisma from '../config/database.js';
 import {
   assignMentor,
-  autoAssignMentor,
   createInterventionTask,
   updateTaskStatus,
   autoEscalateOverdueTasks

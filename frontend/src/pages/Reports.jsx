@@ -7,17 +7,31 @@ import { FileText, Users, AlertTriangle, PieChart, CheckCircle, AlertCircle } fr
 import { motion } from 'framer-motion';
 
 const Reports = () => {
-  const [students, setStudents] = useState([]);
+  const [statsData, setStatsData] = useState({
+    totalStudents: 0,
+    highRisk: 0,
+    mediumRisk: 0,
+    lowRisk: 0
+  });
   const [departmentData, setDepartmentData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [studentsRes, deptRes] = await Promise.all([
-          studentAPI.getAll({ limit: 10000 }),
+        const [statsRes, deptRes] = await Promise.all([
+          studentAPI.getStats(),
           analyticsAPI.getDepartmentRisk()
         ]);
-        setStudents(studentsRes.data || []);
+
+        const data = statsRes.data?.data || statsRes.data || {};
+        const byRisk = data.byDropoutRisk || [];
+        setStatsData({
+          totalStudents: data.totalStudents || 0,
+          highRisk: byRisk.find(r => r.dropoutRisk === 'HIGH')?._count || 0,
+          mediumRisk: byRisk.find(r => r.dropoutRisk === 'MEDIUM')?._count || 0,
+          lowRisk: byRisk.find(r => r.dropoutRisk === 'LOW')?._count || 0
+        });
+
         setDepartmentData(deptRes.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -26,16 +40,11 @@ const Reports = () => {
     fetchData();
   }, []);
 
-  const totalStudents = students.length;
-  const highRisk = students.filter(s => s.dropoutRisk === 'HIGH').length;
-  const mediumRisk = students.filter(s => s.dropoutRisk === 'MEDIUM').length;
-  const lowRisk = students.filter(s => s.dropoutRisk === 'LOW').length;
-
   const stats = [
-    { label: 'Total Students', value: totalStudents, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'High Risk', value: highRisk, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
-    { label: 'Medium Risk', value: mediumRisk, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'Low Risk', value: lowRisk, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Total Students', value: statsData.totalStudents, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { label: 'High Risk', value: statsData.highRisk, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
+    { label: 'Medium Risk', value: statsData.mediumRisk, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Low Risk', value: statsData.lowRisk, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   ];
 
   const reportTypes = [

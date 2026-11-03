@@ -13,9 +13,13 @@ export const clearAllData = async (req, res) => {
     // Use transaction to ensure all-or-nothing deletion
     const result = await prisma.$transaction(async (tx) => {
       // Delete in order to respect foreign key constraints
-      // Delete dependent records first
+      await tx.violationLog.deleteMany({});
+      await tx.quizAttempt.deleteMany({});
       const deletedInterventions = await tx.interventionTask.deleteMany({});
       const deletedCounseling = await tx.counselingLog.deleteMany({});
+      await tx.mentorAssignment.deleteMany({});
+      await tx.counselorAssignment.deleteMany({});
+      await tx.alert.deleteMany({});
       const deletedFees = await tx.feeRecord.deleteMany({});
       const deletedAttempts = await tx.courseAttempt.deleteMany({});
       const deletedAssessments = await tx.assessment.deleteMany({});

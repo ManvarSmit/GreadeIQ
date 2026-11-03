@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import authConfig from '../config/auth.js';
 
 // Middleware to verify JWT token
 export const authenticateToken = (req, res, next) => {
@@ -12,7 +13,7 @@ export const authenticateToken = (req, res, next) => {
     });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, authConfig.jwt.secret, (err, user) => {
     if (err) {
       return res.status(403).json({
         success: false,

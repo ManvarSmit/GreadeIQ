@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { quizAPI } from '../../services/api';
 import { useAntiCheat } from '../../hooks/useAntiCheat';
@@ -16,6 +16,12 @@ const QuizAttemptUI = () => {
     const [submitted, setSubmitted] = useState(false);
     const [violationAlert, setViolationAlert] = useState(null);
     const [hasStarted, setHasStarted] = useState(false);
+
+    const answersRef = useRef(answers);
+
+    useEffect(() => {
+        answersRef.current = answers;
+    }, [answers]);
 
     // Fetch quiz data and initialize attempt
     useEffect(() => {
@@ -57,7 +63,7 @@ const QuizAttemptUI = () => {
         if (submitted || !attemptId) return;
         setSubmitted(true);
         try {
-            const res = await quizAPI.submitQuiz(attemptId, { answers, isAutoSubmitted: isAuto });
+            const res = await quizAPI.submitQuiz(attemptId, { answers: answersRef.current, isAutoSubmitted: isAuto });
             const scoreReceived = res.data?.data?.score ?? res.data?.score ?? 0;
             const aiFeedbackReceived = res.data?.data?.aiFeedback ?? res.data?.aiFeedback ?? null;
             
@@ -78,7 +84,7 @@ const QuizAttemptUI = () => {
                 state: { score: 'Error', totalQuestions: quiz?.questions?.length || 0 }
             });
         }
-    }, [answers, attemptId, submitted, navigate, id, quiz]);
+    }, [attemptId, submitted, navigate, id, quiz]);
 
     const handleAutoSubmit = useCallback(() => {
         submitQuizAction(true);

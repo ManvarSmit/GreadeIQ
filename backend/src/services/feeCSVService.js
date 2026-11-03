@@ -1,6 +1,5 @@
 import fs from 'fs';
 import csvParser from 'csv-parser';
-import { format } from 'fast-csv';
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 
@@ -127,68 +126,6 @@ export const importFeesFromCSV = async (filePath) => {
   });
 };
 
-/**
- * Export fee records to CSV
- */
-export const exportFeesToCSV = async (outputPath, filters = {}) => {
-  try {
-    const where = {};
-    
-    if (filters.paymentStatus) {
-      where.paymentStatus = filters.paymentStatus.toUpperCase();
-    }
-
-    const feeRecords = await prisma.feeRecord.findMany({
-      where,
-      include: {
-        student: {
-          select: { studentId: true, name: true, department: true }
-        }
-      },
-      orderBy: { updatedAt: 'desc' }
-    });
-
-    const writeStream = fs.createWriteStream(outputPath);
-    const csvStream = format({ headers: true });
-    csvStream.pipe(writeStream);
-
-    feeRecords.forEach(record => {
-      csvStream.write({
-        studentId: record.student.studentId,
-        studentName: record.student.name,
-        department: record.student.department,
-        totalFees: record.totalFees,
-        feesPaid: record.feesPaid,
-        feesPending: record.feesPending,
-        paymentStatus: record.paymentStatus,
-        lastPaymentDate: record.lastPaymentDate ? record.lastPaymentDate.toISOString().split('T')[0] : ''
-      });
-    });
-
-    csvStream.end();
-
-    return new Promise((resolve, reject) => {
-      writeStream.on('finish', () => {
-        logger.info(`CSV Export: ${feeRecords.length} fee records exported`);
-        resolve({
-          success: true,
-          exported: feeRecords.length,
-          filePath: outputPath
-        });
-      });
-
-      writeStream.on('error', (error) => {
-        logger.error(`CSV Export Error: ${error.message}`);
-        reject(error);
-      });
-    });
-  } catch (error) {
-    logger.error(`CSV Export Error: ${error.message}`);
-    throw error;
-  }
-};
-
 export default {
-  importFeesFromCSV,
-  exportFeesToCSV
+  importFeesFromCSV
 };

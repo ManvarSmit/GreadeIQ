@@ -1,6 +1,5 @@
 import fs from 'fs';
 import csvParser from 'csv-parser';
-import { format } from 'fast-csv';
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 import { updateStudentRiskProfile } from './riskEngine.js';
@@ -140,76 +139,6 @@ export const importAssessmentsFromCSV = async (filePath) => {
   });
 };
 
-/**
- * Export assessments to CSV
- */
-export const exportAssessmentsToCSV = async (outputPath, filters = {}) => {
-  try {
-    const where = {};
-    
-    if (filters.studentId) {
-      const student = await prisma.student.findUnique({
-        where: { studentId: filters.studentId },
-        select: { id: true }
-      });
-      if (student) where.studentId = student.id;
-    }
-
-    if (filters.assessmentType) {
-      where.assessmentType = filters.assessmentType.toUpperCase();
-    }
-
-    const assessments = await prisma.assessment.findMany({
-      where,
-      include: {
-        student: {
-          select: { studentId: true, name: true }
-        }
-      },
-      orderBy: { date: 'desc' }
-    });
-
-    const writeStream = fs.createWriteStream(outputPath);
-    const csvStream = format({ headers: true });
-    csvStream.pipe(writeStream);
-
-    assessments.forEach(assessment => {
-      csvStream.write({
-        studentId: assessment.student.studentId,
-        studentName: assessment.student.name,
-        assessmentType: assessment.assessmentType,
-        subject: assessment.subject,
-        totalMarks: assessment.totalMarks,
-        marksObtained: assessment.marksObtained,
-        percentage: ((assessment.marksObtained / assessment.totalMarks) * 100).toFixed(2),
-        date: assessment.date.toISOString().split('T')[0]
-      });
-    });
-
-    csvStream.end();
-
-    return new Promise((resolve, reject) => {
-      writeStream.on('finish', () => {
-        logger.info(`CSV Export: ${assessments.length} assessments exported`);
-        resolve({
-          success: true,
-          exported: assessments.length,
-          filePath: outputPath
-        });
-      });
-
-      writeStream.on('error', (error) => {
-        logger.error(`CSV Export Error: ${error.message}`);
-        reject(error);
-      });
-    });
-  } catch (error) {
-    logger.error(`CSV Export Error: ${error.message}`);
-    throw error;
-  }
-};
-
 export default {
-  importAssessmentsFromCSV,
-  exportAssessmentsToCSV
+  importAssessmentsFromCSV
 };

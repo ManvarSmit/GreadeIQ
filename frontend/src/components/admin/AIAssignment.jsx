@@ -35,9 +35,6 @@ const AIAssignment = ({ studentId, studentName, onMentorSelect }) => {
             const analyzeResponse = await aiAPI.analyzeStudent(studentId);
             const analysisData = analyzeResponse.data.data;
 
-            // Artificial delay for better UX (so user sees the "Analyzing" state)
-            await new Promise(resolve => setTimeout(resolve, 800));
-
             setAnalysis(analysisData);
 
             // Step 2: Get mentor suggestions
@@ -64,15 +61,8 @@ const AIAssignment = ({ studentId, studentName, onMentorSelect }) => {
 
             success(`Successfully assigned to ${response.data.mentorName}`);
 
-            // Notify parent
+            // Notify parent with the assigned mentor ID
             if (onMentorSelect) {
-                // We don't have the ID in the response directly as 'mentorId', but we know it's suggestions[0].id usually. 
-                // But safer to rely on what we have or just refresh.
-                // The parent (UserManagementSection) might need to know the ID to update state?
-                // Actually UserManagementSection uses onMentorSelect to set selectedMentor. 
-                // But autoAssign call ALREADY performed the assignment in backend.
-                // So we should probably callback with a success flag or reload?
-                // For now, let's just use the ID we have from suggestions.
                 onMentorSelect(suggestions[0].id);
             }
         } catch (err) {

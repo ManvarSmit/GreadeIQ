@@ -21,6 +21,28 @@ const GEMINI_CONFIG = {
 const REQUEST_TIMEOUT = 60000;
 
 /**
+ * Helper to clean Markdown code fences and parse JSON from Gemini responses
+ * @param {string} text - Raw Gemini response text
+ * @param {*} fallback - Fallback value if JSON parsing fails
+ * @returns {*} - Parsed object or fallback
+ */
+const parseGeminiJson = (text, fallback = null) => {
+    try {
+        let clean = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+        const match = clean.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+        if (match) {
+            clean = match[0];
+        }
+        return JSON.parse(clean);
+    } catch (parseError) {
+        if (fallback !== null) {
+            return fallback;
+        }
+        throw parseError;
+    }
+};
+
+/**
  * Generate a personalized improvement plan for a student
  * @param {object} student - Student profile data including academic stats
  * @returns {Promise<object>} - Structured improvement plan
@@ -76,33 +98,17 @@ export const generateStudentImprovementPlan = async (student) => {
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let text = response.text();
+        const text = response.text();
 
-        // Clean markdown
-        // Clean markdown and extract JSON
-        let jsonText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        const fallbackPlan = {
+            academic_guidance: ["Review course materials regularly", "Seek help from professors during office hours"],
+            behavioral_guidance: ["Maintain consistent attendance", "Participate more in class discussions"],
+            mentor_focus_areas: ["Discuss current academic challenges", "Set achievable short-term goals"],
+            resource_recommendations: ["Visit the learning center", "Join a study group"],
+            motivational_message: "Consistency is key to success. Keep moving forward!"
+        };
 
-        // Find JSON object if there's extra text
-        const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            jsonText = jsonMatch[0];
-        }
-
-        try {
-            return JSON.parse(jsonText);
-        } catch (parseError) {
-            console.error('Gemini Plan JSON Parse Error:', parseError);
-            console.error('Raw Gemini Response:', text);
-
-            // Return fallback structure to avoid crashing
-            return {
-                academic_guidance: ["Review course materials regularly", "Seek help from professors during office hours"],
-                behavioral_guidance: ["Maintain consistent attendance", "Participate more in class discussions"],
-                mentor_focus_areas: ["Discuss current academic challenges", "Set achievable short-term goals"],
-                resource_recommendations: ["Visit the learning center", "Join a study group"],
-                motivational_message: "Consistency is key to success. Keep moving forward!"
-            };
-        }
+        return parseGeminiJson(text, fallbackPlan);
 
     } catch (error) {
         console.error('Gemini Plan Generation Error:', error);
@@ -160,12 +166,9 @@ Return only categories that clearly apply based on the notes. Be specific and ac
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let text = response.text();
+        const text = response.text();
 
-        // Clean the response - remove markdown code blocks if present
-        text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-        const analysis = JSON.parse(text);
+        const analysis = parseGeminiJson(text, {});
 
         return {
             categories: analysis.categories || [],
@@ -180,12 +183,6 @@ Return only categories that clearly apply based on the notes. Be specific and ac
     }
 };
 
-/**
- * Suggest mentors based on problem categories
- * @param {array} problemCategories - Array of problem category IDs
- * @param {array} availableMentors - Array of mentor objects with specializations
- * @returns {array} - Sorted array of mentor recommendations
- */
 /**
  * Suggest mentors based on student context using Gemini AI
  * @param {object} studentData - Student data including counselor notes and problem categories
@@ -248,22 +245,10 @@ export const suggestMentors = async (studentData, availableMentors) => {
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let text = response.text();
+        const text = response.text();
 
-        // Clean markdown
-        let jsonText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            jsonText = jsonMatch[0];
-        }
-
-        let recommendations = [];
-        try {
-            const parsed = JSON.parse(jsonText);
-            recommendations = parsed.recommendations || [];
-        } catch (e) {
-            console.error('Failed to parse mentor suggestions JSON:', e);
-        }
+        const parsed = parseGeminiJson(text, { recommendations: [] });
+        const recommendations = parsed.recommendations || [];
 
         // Merge AI recommendations with original mentor objects
         const scoredMentors = availableMentors.map(mentor => {
@@ -271,12 +256,12 @@ export const suggestMentors = async (studentData, availableMentors) => {
             return {
                 ...mentor,
                 matchScore: rec ? rec.matchScore : 0,
-                distinguishedReasoning: rec ? rec.reasoning : 'available', // renamed to avoid conflict if any
+                distinguishedReasoning: rec ? rec.reasoning : 'available',
                 isRecommended: rec ? rec.matchScore > 60 : false
             };
         });
 
-        // effective sorting: High match score first, then lowest current load
+        // Effective sorting: High match score first, then lowest current load
         return scoredMentors.sort((a, b) => {
             if (b.matchScore !== a.matchScore) {
                 return b.matchScore - a.matchScore; // Higher score first
@@ -291,8 +276,13 @@ export const suggestMentors = async (studentData, availableMentors) => {
     }
 };
 
-
-
+/**
+ * Generate feedback and targeted recommendations for a student's quiz attempt
+ * @param {string} quizTitle - Title of the quiz
+ * @param {string} topics - Subject/topics covered
+ * @param {array} questionResults - Array of student answers and correctness
+ * @returns {Promise<object|null>} - Feedback analysis
+ */
 export const generateQuizFeedback = async (quizTitle, topics, questionResults) => {
     try {
         if (!questionResults || questionResults.length === 0 || questionResults.every(q => q.isCorrect)) {
@@ -350,15 +340,9 @@ IMPORTANT: Keep bullet points concise and directly actionable. Return ONLY valid
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let text = response.text();
+        const text = response.text();
 
-        let jsonText = text.replace(/```json\n?/gi, '').replace(/```\n?/gi, '').trim();
-        const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            jsonText = jsonMatch[0];
-        }
-
-        return JSON.parse(jsonText);
+        return parseGeminiJson(text, null);
     } catch (error) {
         console.error('Gemini Quiz Feedback Error:', error);
         return null;

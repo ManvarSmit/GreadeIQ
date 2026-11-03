@@ -43,13 +43,8 @@ export const sendCredentials = async (email, name, password, role) => {
     return true;
   } catch (error) {
     logger.error(`Error sending email to ${email}: ${error.message}`);
-    console.error('SMTP Error Details:', error);
-    // In dev, if it fails, fallback to console so developer isn't stuck
     if (process.env.NODE_ENV !== 'production') {
-      console.log('==========================================');
-      console.log(`[FALLBACK] Email delivery failed. Credentials for: ${email}`);
-      console.log(`Password: ${password}`);
-      console.log('==========================================');
+      logger.warn(`[DEV] Email delivery failed for: ${email}. Please check SMTP configuration.`);
     }
     return false;
   }
@@ -84,14 +79,14 @@ export const sendPasswordResetEmail = async (email, name, password) => {
     return true;
   } catch (error) {
     logger.error(`Error sending reset email to ${email}: ${error.message}`);
-    console.error('SMTP Error Details:', error);
     if (process.env.NODE_ENV !== 'production') {
-      console.log('==========================================');
-      console.log(`[FALLBACK] Email delivery failed. New Password for: ${email}`);
-      console.log(`Password: ${password}`);
-      console.log('==========================================');
+      logger.warn(`[DEV] Password reset email delivery failed for: ${email}. Please check SMTP configuration.`);
     }
     return false;
   }
 };
 
+export default {
+  sendCredentials,
+  sendPasswordResetEmail,
+};

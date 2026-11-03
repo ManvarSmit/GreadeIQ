@@ -1,5 +1,6 @@
 import prisma from '../config/database.js';
 import { calculateComprehensiveRisk } from '../services/riskEngine.js';
+
 /**
  * Get comprehensive risk profile for a student (with ML integration)
  * GET /api/risk/profile/:id
@@ -29,33 +30,6 @@ export const getRiskProfile = async (req, res) => {
 
     // Calculate comprehensive risk
     const riskProfile = calculateComprehensiveRisk(student);
-
-    // Auto-trigger interventions for HIGH risk students
-    if (riskProfile.overallRisk === 'HIGH') {
-      try {
-        const { triggerHighRiskAlert } = await import('../services/alertService.js');
-        const { autoAssignMentor, createInterventionTask } = await import('../services/interventionService.js');
-        
-        // Create alert
-        await triggerHighRiskAlert(student);
-        
-        // Auto-assign mentor if available
-        const assignment = await autoAssignMentor(student.id);
-        
-        // Create intervention task
-        await createInterventionTask(
-          student.id,
-          'HIGH',
-          `Immediate Intervention Required for ${student.name}`,
-          `Student showing HIGH dropout risk. ${riskProfile.recommendations.join('. ')}`,
-          assignment?.mentorId
-        );
-        
-        console.log(`Auto-intervention triggered for HIGH risk student: ${student.studentId}`);
-      } catch (error) {
-        console.error('Error triggering interventions:', error);
-      }
-    }
 
     res.status(200).json({
       success: true,

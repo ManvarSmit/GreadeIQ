@@ -1,5 +1,6 @@
 import prisma from '../config/database.js';
 import { analyzeStudentProblems, suggestMentors, generateStudentImprovementPlan } from '../services/geminiService.js';
+import { autoAssignMentor as autoAssignMentorService } from '../services/interventionService.js';
 
 /**
  * Analyze student problems using Gemini AI
@@ -210,9 +211,7 @@ export const autoAssignMentor = async (req, res) => {
             where: { id: studentId },
             include: {
                 counselorAssignments: {
-                    include: {
-                        counselor: true
-                    }
+                    where: { status: 'ACTIVE' }
                 },
                 mentorAssignments: {
                     where: { status: 'ACTIVE' }
@@ -233,140 +232,33 @@ export const autoAssignMentor = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Student must be assigned to a counselor first' });
         }
 
-        // Check dropout risk level (case-insensitive comparison)
         const riskLevel = (student.dropoutRisk || '').toUpperCase();
         if (riskLevel !== 'HIGH' && riskLevel !== 'CRITICAL' && riskLevel !== 'MEDIUM') {
-            // Allow HIGH, CRITICAL, and MEDIUM risk students for auto-assignment
             return res.status(400).json({
                 success: false,
                 message: `Auto-assignment requires at least MEDIUM risk level. Current: ${student.dropoutRisk}`
             });
         }
 
-        // 3. Smart AI-Powered Matching
-        let selectedMentor = null;
+        // 3. Delegate to interventionService
+        const assignment = await autoAssignMentorService(studentId);
 
-        // Check if student has counselor notes for intelligent matching
-        if (student.counselorNotes && student.counselorNotes.trim().length > 0) {
-            console.log('Student has counselor notes - using AI matching...');
-            console.log('Notes preview:', student.counselorNotes.substring(0, 150));
-
-            try {
-                // Analyze notes with Gemini AI
-                const analysis = await analyzeStudentProblems(student.counselorNotes);
-                const problemCategories = analysis.categories || [];
-
-                console.log('AI detected problems:', problemCategories);
-
-                // Get available mentors
-                const mentors = await prisma.mentor.findMany({
-                    include: {
-                        assignedStudents: {
-                            where: { status: 'ACTIVE' }
-                        }
-                    }
-                });
-
-                const availableMentors = mentors
-                    .map(m => ({
-                        ...m,
-                        currentLoad: m.assignedStudents.length,
-                        hasCapacity: m.assignedStudents.length < m.maxStudents
-                    }))
-                    .filter(m => m.hasCapacity);
-
-                if (availableMentors.length === 0) {
-                    return res.status(404).json({
-                        success: false,
-                        message: 'No mentors with available capacity found'
-                    });
-                }
-
-                // Use AI matching to find best mentor
-                const suggestions = await suggestMentors({
-                    problemCategories,
-                    counselorNotes: student.counselorNotes,
-                    department: student.department || 'Unknown',
-                    dropoutRisk: student.dropoutRisk
-                }, availableMentors);
-
-                // Prioritize mentors with match score > 5 (good match)
-                const goodMatches = suggestions.filter(m => m.matchScore > 5);
-
-                if (goodMatches.length > 0) {
-                    selectedMentor = goodMatches[0]; // Best match
-                    console.log('✓ Found perfect match:', selectedMentor.name, 'Score:', selectedMentor.matchScore);
-                } else {
-                    // Fallback: nearest match (highest score among available)
-                    selectedMentor = suggestions[0];
-                    console.log('→ Using nearest match:', selectedMentor.name, 'Score:', selectedMentor.matchScore);
-                }
-
-            } catch (aiError) {
-                console.error('AI matching failed, falling back to load-based:', aiError.message);
-                // Fallback to simple assignment if AI fails
-                selectedMentor = null;
-            }
-        }
-
-        // 4. Fallback: Simple load-based assignment if no notes or AI failed
-        if (!selectedMentor) {
-            console.log('Using simple load-based assignment...');
-
-            const mentors = await prisma.mentor.findMany({
-                include: {
-                    assignedStudents: {
-                        where: { status: 'ACTIVE' }
-                    }
-                }
+        if (!assignment || !assignment.mentor) {
+            return res.status(404).json({
+                success: false,
+                message: 'No mentors with available capacity found'
             });
-
-            const availableMentors = mentors
-                .map(m => ({
-                    ...m,
-                    currentLoad: m.assignedStudents.length,
-                    hasCapacity: m.assignedStudents.length < m.maxStudents
-                }))
-                .filter(m => m.hasCapacity)
-                .sort((a, b) => a.currentLoad - b.currentLoad);
-
-            if (availableMentors.length === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'No mentors with available capacity found'
-                });
-            }
-
-            selectedMentor = availableMentors[0];
         }
 
-        console.log('Final mentor selection:', {
-            name: selectedMentor.name,
-            specialization: selectedMentor.specialization,
-            currentLoad: selectedMentor.currentLoad,
-            maxStudents: selectedMentor.maxStudents
-        });
-
-        // 5. Assign Mentor
-        const assignment = await prisma.mentorAssignment.create({
-            data: {
-                studentId: student.id,
-                mentorId: selectedMentor.id,
-                status: 'ACTIVE',
-                assignedAt: new Date()
-            }
-        });
-
-        // 6. Return Success
         res.status(200).json({
             success: true,
             data: {
                 assignment,
-                mentorName: selectedMentor.name,
-                mentorSpecialization: selectedMentor.specialization,
+                mentorName: assignment.mentor.name,
+                mentorSpecialization: assignment.mentor.specialization,
                 assignmentReason: `Assigned based on ${student.counselorNotes ? 'AI analysis' : 'availability'}`
             },
-            message: `Successfully assigned to ${selectedMentor.name}`
+            message: `Successfully assigned to ${assignment.mentor.name}`
         });
     } catch (error) {
         console.error('Auto-Assign Error:', error);
@@ -380,4 +272,3 @@ export default {
     getStudentImprovementPlan,
     autoAssignMentor
 };
-// force reload 02/07/2026 15:46:34

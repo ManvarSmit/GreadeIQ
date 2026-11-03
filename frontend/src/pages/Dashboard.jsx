@@ -34,31 +34,29 @@ const Dashboard = () => {
     try {
       setLoading(true);
 
-      // Fetch all students (set high limit to get all records)
-      const studentsData = await studentAPI.getAll({ limit: 10000 });
-      const students = studentsData.data || studentsData;
+      const [statsRes, highRiskRes] = await Promise.all([
+        studentAPI.getStats(),
+        studentAPI.getAll({ dropoutRisk: 'HIGH', limit: 5 })
+      ]);
 
-      // Calculate statistics
-      const totalStudents = students.length;
-      const highRisk = students.filter(s => s.dropoutRisk === 'HIGH').length;
-      const mediumRisk = students.filter(s => s.dropoutRisk === 'MEDIUM').length;
-      const lowRisk = students.filter(s => s.dropoutRisk === 'LOW' || !s.dropoutRisk).length;
+      const statsData = statsRes.data?.data || statsRes.data || {};
+      const byRisk = statsData.byDropoutRisk || [];
+      const highRisk = byRisk.find(r => r.dropoutRisk === 'HIGH')?._count || 0;
+      const mediumRisk = byRisk.find(r => r.dropoutRisk === 'MEDIUM')?._count || 0;
+      const lowRisk = byRisk.find(r => r.dropoutRisk === 'LOW')?._count || 0;
 
-      // Get high risk students for table (top 5)
-      const highRiskList = students
-        .filter(s => s.dropoutRisk === 'HIGH')
-        .slice(0, 5)
-        .map(s => ({
-          id: s.id,
-          name: s.name,
-          studentId: s.studentId,
-          attendance: Math.round(s.attendancePercent || 0),
-          avgMarks: s.currentCGPA ? Math.round((s.currentCGPA / 10) * 100) : 0,
-          riskLevel: 'HIGH'
-        }));
+      const highRiskStudentsData = highRiskRes.data?.data || highRiskRes.data || [];
+      const highRiskList = highRiskStudentsData.map(s => ({
+        id: s.id,
+        name: s.name,
+        studentId: s.studentId,
+        attendance: Math.round(s.attendancePercent || 0),
+        avgMarks: s.currentCGPA ? Math.round((s.currentCGPA / 10) * 100) : 0,
+        riskLevel: 'HIGH'
+      }));
 
       setStats({
-        total: totalStudents,
+        total: statsData.totalStudents || 0,
         highRisk,
         mediumRisk,
         safe: lowRisk

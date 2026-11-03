@@ -341,11 +341,6 @@ export const bulkUploadStudents = async (req, res) => {
             }
           };
 
-          // Debug log for first few rows
-          if (lineNumber <= 3) {
-            console.log(`[Row ${lineNumber}] Parsed:`, student);
-          }
-
           // Basic validation
           if (!student.studentId || !student.name || !student.email || !student.department) {
             console.warn(`[Row ${lineNumber}] Missing required fields. Raw row:`, row);
@@ -427,7 +422,7 @@ export const bulkUploadStudents = async (req, res) => {
             console.log(`Fee records created.`);
           }
 
-          //  Recalculate risk for newly uploaded students
+          // Recalculate risk for newly uploaded students
           console.log('Calculating dropout risk for uploaded students...');
           const uploadedStudents = await prisma.student.findMany({
             where: {
@@ -544,4 +539,3 @@ export const getStudentStats = async (req, res) => {
     });
   }
 };
-// force reload

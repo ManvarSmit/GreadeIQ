@@ -192,7 +192,6 @@ export const reportsAPI = {
 
 // ==================== ANALYTICS ENDPOINTS ====================
 export const analyticsAPI = {
-  getDashboardStats: () => api.get('/analytics/dashboard'),
   getDepartmentRisk: (params) => api.get('/analytics/department-risk', { params }),
   getSubjectFailures: () => api.get('/analytics/subject-failures'),
   getSemesterTransition: () => api.get('/analytics/semester-transition'),
@@ -219,7 +218,6 @@ export const aiAPI = {
   suggestMentors: (studentId) => api.post(`/ai/suggest-mentors/${studentId}`),
   getImprovementPlan: (studentId) => api.post(`/ai/improvement-plan/${studentId}`),
   autoAssignMentor: (studentId) => api.post(`/ai/auto-assign/${studentId}`),
-  generateQuiz: (data) => api.post(`/ai/generate-quiz`, data),
 };
 
 // ==================== HEALTH CHECK ====================
