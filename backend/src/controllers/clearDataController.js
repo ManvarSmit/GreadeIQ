@@ -18,7 +18,6 @@ export const clearAllData = async (req, res) => {
       const deletedInterventions = await tx.interventionTask.deleteMany({});
       const deletedCounseling = await tx.counselingLog.deleteMany({});
       await tx.mentorAssignment.deleteMany({});
-      await tx.counselorAssignment.deleteMany({});
       await tx.alert.deleteMany({});
       const deletedFees = await tx.feeRecord.deleteMany({});
       const deletedAttempts = await tx.courseAttempt.deleteMany({});

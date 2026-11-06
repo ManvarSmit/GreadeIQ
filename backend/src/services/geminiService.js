@@ -55,6 +55,7 @@ export const generateStudentImprovementPlan = async (student) => {
             requestOptions: { timeout: REQUEST_TIMEOUT }
         });
 
+        const notes = student.counselingNotes || 'None';
         const studentContext = `
         Student Name: ${student.name}
         Department: ${student.department}
@@ -62,13 +63,13 @@ export const generateStudentImprovementPlan = async (student) => {
         Current CGPA: ${student.currentCGPA}
         Attendance: ${student.attendancePercent}%
         Risk Level: ${student.dropoutRisk}
-        Counselor Notes: ${student.counselorNotes || 'None'}
+        Mentorship & Counseling Notes: ${notes}
         Family Income: ${student.familyIncome || 'Unknown'}
         Disciplinary Issues: ${student.disciplinaryIssues || 0}
         Probable Issues: ${student.problemCategories || 'None'}
         `;
 
-        const prompt = `You are an expert academic counselor and student mentor. Create a detailed, personalized improvement plan for the following student:
+        const prompt = `You are an expert academic mentor and student advisor. Create a detailed, personalized improvement plan for the following student:
 
         ${studentContext}
 
@@ -117,13 +118,13 @@ export const generateStudentImprovementPlan = async (student) => {
 };
 
 /**
- * Analyze student problems from counselor notes using Gemini AI
- * @param {string} counselorNotes - The counselor's notes about the student
+ * Analyze student problems from mentorship/counseling notes using Gemini AI
+ * @param {string} counselingNotes - The mentor's notes about the student
  * @returns {Promise<object>} - Analysis result with problem categories and summary
  */
-export const analyzeStudentProblems = async (counselorNotes) => {
+export const analyzeStudentProblems = async (counselingNotes) => {
     try {
-        if (!counselorNotes || counselorNotes.trim().length === 0) {
+        if (!counselingNotes || counselingNotes.trim().length === 0) {
             return {
                 categories: [],
                 summary: 'No issues documented',
@@ -137,10 +138,10 @@ export const analyzeStudentProblems = async (counselorNotes) => {
             requestOptions: { timeout: REQUEST_TIMEOUT }
         });
 
-        const prompt = `You are an expert student counselor analyzing student problems. Based on the following counselor notes, identify and categorize the student's problems.
+        const prompt = `You are an expert academic mentor analyzing student problems. Based on the following student notes, identify and categorize the student's problems.
 
-Counselor Notes:
-"${counselorNotes}"
+Mentorship & Counseling Notes:
+"${counselingNotes}"
 
 Please analyze and respond in the following JSON format (output ONLY valid JSON, no additional text):
 {
@@ -158,41 +159,41 @@ Available categories (use exact names):
 - mental_health: Depression, anxiety, stress, mental health struggles
 - bereavement: Death of family member, grief, loss
 - social_isolation: Loneliness, lack of friends, social withdrawal
-- attendance_issues: Frequent absences, late arrivals
-- substance_abuse: Alcohol, drugs, addiction issues
-- career_confusion: Unsure about career path, lack of direction
+- career_confusion: Lack of direction, uncertain about future
+- disciplinary_actions: Behavior issues, rule violations, attendance problems
+- other: Any other issues not covered above
 
-Return only categories that clearly apply based on the notes. Be specific and accurate.`;
+Rules:
+1. Select 1-3 most relevant categories based on clear evidence in notes
+2. Write a clear 1-2 sentence summary of the student's situation
+3. Provide confidence score (0.0 to 1.0) based on how explicit the notes are
+4. Explain your reasoning briefly`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
 
-        const analysis = parseGeminiJson(text, {});
-
-        return {
-            categories: analysis.categories || [],
-            summary: analysis.summary || 'Analysis completed',
-            confidence: analysis.confidence || 0.5,
-            reasoning: analysis.reasoning || ''
-        };
+        return parseGeminiJson(text, {
+            categories: ['other'],
+            summary: 'Issues detected from notes',
+            confidence: 0.5,
+            reasoning: 'Fallback classification'
+        });
 
     } catch (error) {
-        console.error('Gemini AI Error:', error);
+        console.error('Gemini Analysis Error:', error);
         throw new Error(`Failed to analyze student problems: ${error.message}`);
     }
 };
 
 /**
- * Suggest mentors based on student context using Gemini AI
- * @param {object} studentData - Student data including counselor notes and problem categories
- * @param {array} availableMentors - Array of mentor objects with specializations
- * @returns {Promise<array>} - Sorted array of mentor recommendations
+ * Suggest best-match mentors for a student based on problem categories
+ * @param {object} studentData - Student data including counseling notes and problem categories
+ * @param {array} availableMentors - List of mentors with specializations and current load
+ * @returns {Promise<array>} - Ranked list of mentors with match scores
  */
 export const suggestMentors = async (studentData, availableMentors) => {
     try {
-        console.log('Generating AI mentor suggestions for student...');
-
         if (!availableMentors || availableMentors.length === 0) {
             return [];
         }
@@ -208,15 +209,16 @@ export const suggestMentors = async (studentData, availableMentors) => {
             `- ID: ${m.id}, Name: ${m.name}, Department: ${m.department || 'N/A'}, Specialization: ${m.specialization || 'General'}, Current Load: ${m.currentLoad || 0}`
         ).join('\n');
 
+        const notes = studentData.counselingNotes || 'No notes provided';
         const studentContext = `
         Student Context:
         Problem Categories: ${JSON.stringify(studentData.problemCategories || [])}
-        Counselor Notes: "${studentData.counselorNotes || 'No notes provided'}"
+        Mentorship & Counseling Notes: "${notes}"
         Department: ${studentData.department || 'Unknown'}
         Risk Level: ${studentData.dropoutRisk || 'Unknown'}
         `;
 
-        const prompt = `You are an expert academic counselor. Your task is to select the most suitable mentors for a student based on their specific problems and the mentors' specializations.
+        const prompt = `You are an expert academic mentor coordinator. Your task is to select the most suitable mentors for a student based on their specific problems and the mentors' specializations.
         
         ${studentContext}
 

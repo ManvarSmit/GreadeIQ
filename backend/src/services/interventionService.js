@@ -18,17 +18,16 @@ import { analyzeStudentProblems, suggestMentors } from './geminiService.js';
  */
 export const autoAssignMentor = async (studentId) => {
   try {
-    // 1. Get student data with counselor notes
+    // 1. Get student data with mentorship & counseling notes
     const student = await prisma.student.findUnique({
       where: { id: studentId },
       select: {
         id: true,
         name: true,
-        counselorNotes: true,
+        counselingNotes: true,
         problemCategories: true,
-        counselorAssignments: {
-          where: { status: 'ACTIVE' }
-        },
+        department: true,
+        dropoutRisk: true,
         mentorAssignments: {
           where: { status: 'ACTIVE' }
         }
@@ -37,15 +36,8 @@ export const autoAssignMentor = async (studentId) => {
 
     if (!student) return null;
 
-    // Check pre-requisites based on user rules
-    const hasActiveCounselor = student.counselorAssignments && student.counselorAssignments.length > 0;
-    if (!hasActiveCounselor) {
-      console.warn(`Student ${student.name} has no counselor, skipping auto-assign`);
-      return null;
-    }
-
     if (student.mentorAssignments && student.mentorAssignments.length > 0) {
-      console.warn(`Student ${student.name} already has a mentor`);
+      console.warn(`Student ${student.name} already has an active mentor`);
       return null;
     }
 
@@ -54,7 +46,7 @@ export const autoAssignMentor = async (studentId) => {
       include: {
         assignedStudents: {
           where: { status: 'ACTIVE' },
-          select: { id: true } // Only need ID to count
+          select: { id: true }
         }
       }
     });
@@ -70,7 +62,7 @@ export const autoAssignMentor = async (studentId) => {
     let selectedMentor = null;
 
     // 3. AI Matching Logic
-    if (student.counselorNotes && student.counselorNotes.trim().length > 0) {
+    if (student.counselingNotes && student.counselingNotes.trim().length > 0) {
       try {
         console.log(`Analyzing student ${student.name} for AI mentor matching...`);
 
@@ -79,7 +71,7 @@ export const autoAssignMentor = async (studentId) => {
         if (student.problemCategories) {
           categories = JSON.parse(student.problemCategories);
         } else {
-          const analysis = await analyzeStudentProblems(student.counselorNotes);
+          const analysis = await analyzeStudentProblems(student.counselingNotes);
           categories = analysis.categories;
 
           // Save analysis to student
@@ -96,9 +88,9 @@ export const autoAssignMentor = async (studentId) => {
         // Get suggestions
         const suggestions = await suggestMentors({
           problemCategories: categories,
-          counselorNotes: student.counselorNotes,
-          department: 'Unknown', // Could fetch if needed
-          dropoutRisk: 'Unknown'
+          counselingNotes: student.counselingNotes,
+          department: student.department || 'Unknown',
+          dropoutRisk: student.dropoutRisk || 'Unknown'
         }, availableMentors);
 
         if (suggestions.length > 0 && suggestions[0].matchScore > 0) {

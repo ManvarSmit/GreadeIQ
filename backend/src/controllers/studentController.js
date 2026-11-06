@@ -30,6 +30,7 @@ export const createStudent = async (req, res) => {
       studentData.dateOfBirth = new Date(studentData.dateOfBirth);
     }
 
+
     const student = await prisma.student.create({
       data: studentData
     });
@@ -123,11 +124,6 @@ export const getStudentById = async (req, res) => {
     const student = await prisma.student.findUnique({
       where: whereClause,
       include: {
-        counselorAssignments: {
-          include: {
-            counselor: true
-          }
-        },
         mentorAssignments: {
           where: { status: 'ACTIVE' },
           include: {
@@ -162,7 +158,7 @@ export const getStudentById = async (req, res) => {
 export const updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
 
     // Check if student exists
     const existingStudent = await prisma.student.findUnique({
@@ -181,6 +177,7 @@ export const updateStudent = async (req, res) => {
       updateData.dateOfBirth = new Date(updateData.dateOfBirth);
     }
 
+
     const student = await prisma.student.update({
       where: { id },
       data: updateData
@@ -189,7 +186,7 @@ export const updateStudent = async (req, res) => {
     // Auto-trigger assignment if High Risk or Notes changed for High Risk student
     if (
       (updateData.dropoutRisk === 'HIGH' && existingStudent.dropoutRisk !== 'HIGH') ||
-      (updateData.counselorNotes && updateData.counselorNotes !== existingStudent.counselorNotes)
+      (updateData.counselingNotes && updateData.counselingNotes !== existingStudent.counselingNotes)
     ) {
       try {
         console.log(`Triggering auto-assignment for high-risk student: ${student.name}`);
@@ -313,7 +310,6 @@ export const bulkUploadStudents = async (req, res) => {
         lineNumber++;
         try {
           // Validate and parse row data
-          // Ensure keys match your CSV headers exactly
           const student = {
             studentId: getVal(row, 'studentId', 'Student ID', 'student_id')?.trim(),
             name: getVal(row, 'name', 'Name')?.trim(),
@@ -439,7 +435,7 @@ export const bulkUploadStudents = async (req, res) => {
           const { autoAssignMentor } = await import('../services/interventionService.js');
 
           for (const student of uploadedStudents) {
-            const { riskLevel, riskScore, riskReason } = calculateRisk(
+            const { riskLevel, riskReason } = calculateRisk(
               student,
               student.attendanceRecords || [],
               student.assessments || []

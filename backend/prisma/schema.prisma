@@ -14,7 +14,6 @@ datasource db {
 enum UserRole {
   ADMIN
   MENTOR
-  COUNSELOR
 }
 
 model User {
@@ -65,8 +64,8 @@ model Student {
   
   // ML Predictions
   
-  // Counselor Notes
-  counselorNotes    String?  @db.Text // Family problems, personal issues, etc.
+  // Counseling & Mentorship Notes (mapped to existing column)
+  counselingNotes   String?  @map("counselorNotes") @db.Text
   
   // AI Analysis  
   problemCategories String?  @db.Text // JSON array of detected problem categories
@@ -84,7 +83,6 @@ model Student {
   assessments          Assessment[]
   alerts               Alert[]
   mentorAssignments    MentorAssignment[]
-  counselorAssignments CounselorAssignment[]
   interventionTasks    InterventionTask[]
   counselingLogs       CounselingLog[]
   courseAttempts       CourseAttempt[]
@@ -139,9 +137,8 @@ model Mentor {
   email                String                        @unique
   department           String?
   specialization       String?  // Mentor's area of expertise for AI matching
-  maxStudents          Int                           @default(10)
+  maxStudents          Int                           @default(30)
   assignedStudents     MentorAssignment[]
-  counselorAssignments MentorCounselorAssignment[]
   quizzes              Quiz[]
   createdAt            DateTime                      @default(now())
   
@@ -183,8 +180,7 @@ model CounselingLog {
   id                    String    @id @default(uuid())
   studentId             String
   student               Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  mentorId              String?
-  counselorId           String?   // Counselor who conducted the session
+  mentorId              String?   // Mentor who conducted the session
   sessionDate           DateTime
   notes                 String    // Counseling session notes
   actionsTaken          String?   // Actions taken during session
@@ -238,58 +234,12 @@ model FeeRecord {
   @@map("fee_records")
 }
 
-// Counselor Model
-model Counselor {
-  id                    String                        @id @default(uuid())
-  name                  String
-  email                 String                        @unique
-  department            String?
-  maxStudents           Int                           @default(30)
-  assignedStudents      CounselorAssignment[]
-  mentorAssignments     MentorCounselorAssignment[]
-  quizzes               Quiz[]
-  createdAt             DateTime                      @default(now())
-  updatedAt             DateTime                      @updatedAt
-  
-  @@map("counselors")
-}
-
-// Student-to-Counselor Assignment
-model CounselorAssignment {
-  id          String     @id @default(uuid())
-  studentId   String
-  student     Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  counselorId String
-  counselor   Counselor  @relation(fields: [counselorId], references: [id], onDelete: Cascade)
-  assignedAt  DateTime   @default(now())
-  assignedBy  String?    // Admin user ID who made the assignment
-  status      String     @default("ACTIVE") // ACTIVE, COMPLETED, REASSIGNED
-  
-  @@map("counselor_assignments")
-}
-
-// Mentor-to-Counselor Assignment (Oversight)
-model MentorCounselorAssignment {
-  id          String     @id @default(uuid())
-  mentorId    String
-  mentor      Mentor     @relation(fields: [mentorId], references: [id], onDelete: Cascade)
-  counselorId String
-  counselor   Counselor  @relation(fields: [counselorId], references: [id], onDelete: Cascade)
-  assignedAt  DateTime   @default(now())
-  assignedBy  String?    // Admin user ID
-  status      String     @default("ACTIVE") // ACTIVE, COMPLETED, REASSIGNED
-  
-  @@map("mentor_counselor_assignments")
-}
-
 // ----------------------------------------------------------------------
 // Quiz & Anti-Cheating System Models
 // ----------------------------------------------------------------------
 
 model Quiz {
   id              String         @id @default(uuid())
-  counselorId     String?
-  counselor       Counselor?     @relation(fields: [counselorId], references: [id], onDelete: Cascade)
   mentorId        String?
   mentor          Mentor?        @relation(fields: [mentorId], references: [id], onDelete: Cascade)
   title           String

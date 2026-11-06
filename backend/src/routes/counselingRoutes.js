@@ -13,12 +13,11 @@ const router = express.Router();
 
 router.use(authenticate);
 
-// Get counseling queue (high risk students)
-// Higher priority than :id routes to avoid collision
-router.get('/queue', authorizeRole('COUNSELOR', 'ADMIN'), getCounselingQueue);
+// Get counseling queue (high & medium risk students) - MENTOR & ADMIN
+router.get('/queue', authorizeRole('MENTOR', 'ADMIN'), getCounselingQueue);
 
-// Create counseling log
-router.post('/create', authorizeRole('COUNSELOR', 'ADMIN'), createLog);
+// Create counseling log - MENTOR & ADMIN
+router.post('/create', authorizeRole('MENTOR', 'ADMIN'), createLog);
 
 // Get student counseling history
 router.get('/student/:id', getHistory);

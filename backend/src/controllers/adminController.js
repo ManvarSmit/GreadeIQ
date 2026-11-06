@@ -5,7 +5,6 @@ import authConfig from '../config/auth.js';
 import logger from '../utils/logger.js';
 import { sendPasswordResetEmail } from '../services/emailService.js';
 
-
 /**
  * Get all mentors with statistics
  * GET /api/admin/mentors
@@ -16,11 +15,18 @@ export const getAllMentors = async (req, res) => {
             include: {
                 assignedStudents: {
                     where: { status: 'ACTIVE' },
-                    select: { id: true }
-                },
-                counselorAssignments: {
-                    where: { status: 'ACTIVE' },
-                    select: { id: true, counselor: { select: { name: true, email: true } } }
+                    include: {
+                        student: {
+                            select: {
+                                id: true,
+                                studentId: true,
+                                name: true,
+                                dropoutRisk: true,
+                                currentCGPA: true,
+                                attendancePercent: true
+                            }
+                        }
+                    }
                 }
             },
             orderBy: { createdAt: 'desc' }
@@ -38,13 +44,21 @@ export const getAllMentors = async (req, res) => {
             return acc;
         }, {});
 
-        const mentorsWithStats = mentors.map(mentor => ({
-            ...mentor,
-            userId: userMap[mentor.email], // Attach User ID
-            studentCount: mentor.assignedStudents.length,
-            counselorCount: mentor.counselorAssignments.length,
-            counselors: mentor.counselorAssignments.map(ca => ca.counselor)
-        }));
+        const maxCapacity = 30;
+
+        const mentorsWithStats = mentors.map(mentor => {
+            const students = mentor.assignedStudents.map(a => a.student);
+            const highRisk = students.filter(s => s && s.dropoutRisk === 'HIGH').length;
+
+            return {
+                ...mentor,
+                userId: userMap[mentor.email], // Attach User ID
+                studentCount: students.length,
+                highRiskCount: highRisk,
+                maxStudents: maxCapacity,
+                capacityUsed: ((students.length / maxCapacity) * 100).toFixed(1)
+            };
+        });
 
         res.status(200).json({
             success: true,
@@ -63,85 +77,21 @@ export const getAllMentors = async (req, res) => {
 };
 
 /**
- * Get all counselors with statistics
- * GET /api/admin/counselors
+ * Assign student to mentor
+ * POST /api/admin/assign/student-mentor
  */
-export const getAllCounselors = async (req, res) => {
+export const assignStudentToMentor = async (req, res) => {
     try {
-        const counselors = await prisma.counselor.findMany({
-            include: {
-                assignedStudents: {
-                    where: { status: 'ACTIVE' },
-                    include: {
-                        student: {
-                            select: {
-                                dropoutRisk: true
-                            }
-                        }
-                    }
-                },
-                mentorAssignments: {
-                    where: { status: 'ACTIVE' },
-                    select: {
-                        mentor: {
-                            select: { name: true, email: true }
-                        }
-                    }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-
-        // Get User IDs for each counselor email
-        const emails = counselors.map(c => c.email);
-        const users = await prisma.user.findMany({
-            where: { email: { in: emails } },
-            select: { id: true, email: true }
-        });
-
-        const userMap = users.reduce((acc, user) => {
-            acc[user.email] = user.id;
-            return acc;
-        }, {});
-
-        const counselorsWithStats = counselors.map(counselor => {
-            const students = counselor.assignedStudents.map(a => a.student);
-            const highRisk = students.filter(s => s.dropoutRisk === 'HIGH').length;
-
-            return {
-                ...counselor,
-                userId: userMap[counselor.email], // Attach User ID
-                studentCount: counselor.assignedStudents.length,
-                highRiskCount: highRisk,
-                mentors: counselor.mentorAssignments.map(ma => ma.mentor),
-                capacityUsed: ((counselor.assignedStudents.length / counselor.maxStudents) * 100).toFixed(1)
-            };
-        });
-
-        res.status(200).json({
-            success: true,
-            count: counselorsWithStats.length,
-            data: counselorsWithStats
-        });
-
-    } catch (error) {
-        console.error('Get all counselors error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching counselors',
-            error: error.message
-        });
-    }
-};
-
-/**
- * Assign student to counselor
- * POST /api/admin/assign/student-counselor
- */
-export const assignStudentToCounselor = async (req, res) => {
-    try {
-        const { studentId, counselorId } = req.body;
+        const { studentId, mentorId } = req.body;
+        const targetMentorId = mentorId;
         const adminUserId = req.user.id;
+
+        if (!studentId || !targetMentorId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Both studentId and mentorId are required'
+            });
+        }
 
         // Validate student exists
         const student = await prisma.student.findUnique({
@@ -155,9 +105,9 @@ export const assignStudentToCounselor = async (req, res) => {
             });
         }
 
-        // Validate counselor exists
-        const counselor = await prisma.counselor.findUnique({
-            where: { id: counselorId },
+        // Validate mentor exists
+        const mentor = await prisma.mentor.findUnique({
+            where: { id: targetMentorId },
             include: {
                 assignedStudents: {
                     where: { status: 'ACTIVE' }
@@ -165,26 +115,27 @@ export const assignStudentToCounselor = async (req, res) => {
             }
         });
 
-        if (!counselor) {
+        if (!mentor) {
             return res.status(404).json({
                 success: false,
-                message: 'Counselor not found'
+                message: 'Mentor not found'
             });
         }
 
-        // Check counselor capacity
-        if (counselor.assignedStudents.length >= counselor.maxStudents) {
+        // Check mentor capacity (default: 30)
+        const maxCapacity = 30;
+        if (mentor.assignedStudents.length >= maxCapacity) {
             return res.status(400).json({
                 success: false,
-                message: `Counselor has reached maximum capacity (${counselor.maxStudents} students)`
+                message: `Mentor has reached maximum capacity (${maxCapacity} students)`
             });
         }
 
-        // Check if student is already assigned to this counselor
-        const existingAssignment = await prisma.counselorAssignment.findFirst({
+        // Check if student is already assigned to this mentor
+        const existingAssignment = await prisma.mentorAssignment.findFirst({
             where: {
                 studentId,
-                counselorId,
+                mentorId: targetMentorId,
                 status: 'ACTIVE'
             }
         });
@@ -192,12 +143,12 @@ export const assignStudentToCounselor = async (req, res) => {
         if (existingAssignment) {
             return res.status(400).json({
                 success: false,
-                message: 'Student is already assigned to this counselor'
+                message: 'Student is already assigned to this mentor'
             });
         }
 
         // Deactivate any existing active assignments for this student
-        await prisma.counselorAssignment.updateMany({
+        await prisma.mentorAssignment.updateMany({
             where: {
                 studentId,
                 status: 'ACTIVE'
@@ -208,10 +159,10 @@ export const assignStudentToCounselor = async (req, res) => {
         });
 
         // Create new assignment
-        const assignment = await prisma.counselorAssignment.create({
+        const assignment = await prisma.mentorAssignment.create({
             data: {
                 studentId,
-                counselorId,
+                mentorId: targetMentorId,
                 assignedBy: adminUserId,
                 status: 'ACTIVE'
             },
@@ -219,91 +170,8 @@ export const assignStudentToCounselor = async (req, res) => {
                 student: {
                     select: { name: true, studentId: true }
                 },
-                counselor: {
-                    select: { name: true, email: true }
-                }
-            }
-        });
-
-        res.status(201).json({
-            success: true,
-            data: assignment,
-            message: 'Student assigned to counselor successfully'
-        });
-
-    } catch (error) {
-        console.error('Assign student to counselor error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error assigning student to counselor',
-            error: error.message
-        });
-    }
-};
-
-/**
- * Assign mentor to counselor (oversight)
- * POST /api/admin/assign/mentor-counselor
- */
-export const assignMentorToCounselor = async (req, res) => {
-    try {
-        const { mentorId, counselorId } = req.body;
-        const adminUserId = req.user.id;
-
-        // Validate mentor exists
-        const mentor = await prisma.mentor.findUnique({
-            where: { id: mentorId }
-        });
-
-        if (!mentor) {
-            return res.status(404).json({
-                success: false,
-                message: 'Mentor not found'
-            });
-        }
-
-        // Validate counselor exists
-        const counselor = await prisma.counselor.findUnique({
-            where: { id: counselorId }
-        });
-
-        if (!counselor) {
-            return res.status(404).json({
-                success: false,
-                message: 'Counselor not found'
-            });
-        }
-
-        // Check if assignment already exists
-        const existingAssignment = await prisma.mentorCounselorAssignment.findFirst({
-            where: {
-                mentorId,
-                counselorId,
-                status: 'ACTIVE'
-            }
-        });
-
-        if (existingAssignment) {
-            return res.status(400).json({
-                success: false,
-                message: 'Mentor is already assigned to this counselor'
-            });
-        }
-
-        // Create new assignment
-        const assignment = await prisma.mentorCounselorAssignment.create({
-            data: {
-                mentorId,
-                counselorId,
-                assignedBy: adminUserId,
-                status: 'ACTIVE'
-            },
-            include: {
                 mentor: {
                     select: { name: true, email: true }
-                },
-                counselor: {
-                    select: { name: true, email: true }
                 }
             }
         });
@@ -311,26 +179,27 @@ export const assignMentorToCounselor = async (req, res) => {
         res.status(201).json({
             success: true,
             data: assignment,
-            message: 'Mentor assigned to counselor successfully'
+            message: 'Student assigned to mentor successfully'
         });
 
     } catch (error) {
-        console.error('Assign mentor to counselor error:', error);
+        console.error('Assign student to mentor error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error assigning mentor to counselor',
+            message: 'Error assigning student to mentor',
             error: error.message
         });
     }
 };
 
 /**
- * Bulk assign students to counselor
+ * Bulk assign students to mentor
  * POST /api/admin/assign/bulk-students
  */
 export const bulkAssignStudents = async (req, res) => {
     try {
-        const { studentIds, counselorId } = req.body;
+        const { studentIds, mentorId } = req.body;
+        const targetMentorId = mentorId;
         const adminUserId = req.user.id;
 
         if (!Array.isArray(studentIds) || studentIds.length === 0) {
@@ -340,9 +209,16 @@ export const bulkAssignStudents = async (req, res) => {
             });
         }
 
-        // Validate counselor exists and check capacity
-        const counselor = await prisma.counselor.findUnique({
-            where: { id: counselorId },
+        if (!targetMentorId) {
+            return res.status(400).json({
+                success: false,
+                message: 'mentorId is required'
+            });
+        }
+
+        // Validate mentor exists and check capacity
+        const mentor = await prisma.mentor.findUnique({
+            where: { id: targetMentorId },
             include: {
                 assignedStudents: {
                     where: { status: 'ACTIVE' }
@@ -350,23 +226,24 @@ export const bulkAssignStudents = async (req, res) => {
             }
         });
 
-        if (!counselor) {
+        if (!mentor) {
             return res.status(404).json({
                 success: false,
-                message: 'Counselor not found'
+                message: 'Mentor not found'
             });
         }
 
-        const availableCapacity = counselor.maxStudents - counselor.assignedStudents.length;
+        const maxCapacity = 30;
+        const availableCapacity = maxCapacity - mentor.assignedStudents.length;
         if (studentIds.length > availableCapacity) {
             return res.status(400).json({
                 success: false,
-                message: `Counselor can only accommodate ${availableCapacity} more students`
+                message: `Mentor can only accommodate ${availableCapacity} more students`
             });
         }
 
         // Deactivate existing assignments for these students
-        await prisma.counselorAssignment.updateMany({
+        await prisma.mentorAssignment.updateMany({
             where: {
                 studentId: { in: studentIds },
                 status: 'ACTIVE'
@@ -379,10 +256,10 @@ export const bulkAssignStudents = async (req, res) => {
         // Create new assignments
         const assignments = await Promise.all(
             studentIds.map(studentId =>
-                prisma.counselorAssignment.create({
+                prisma.mentorAssignment.create({
                     data: {
                         studentId,
-                        counselorId,
+                        mentorId: targetMentorId,
                         assignedBy: adminUserId,
                         status: 'ACTIVE'
                     }
@@ -394,7 +271,7 @@ export const bulkAssignStudents = async (req, res) => {
             success: true,
             count: assignments.length,
             data: assignments,
-            message: `${assignments.length} students assigned to counselor successfully`
+            message: `${assignments.length} students assigned to mentor successfully`
         });
 
     } catch (error) {
@@ -408,16 +285,24 @@ export const bulkAssignStudents = async (req, res) => {
 };
 
 /**
- * Reassign student to different counselor
+ * Reassign student to different mentor
  * PUT /api/admin/reassign/student
  */
 export const reassignStudent = async (req, res) => {
     try {
-        const { studentId, newCounselorId } = req.body;
+        const { studentId, newMentorId } = req.body;
+        const targetMentorId = newMentorId;
         const adminUserId = req.user.id;
 
+        if (!studentId || !targetMentorId) {
+            return res.status(400).json({
+                success: false,
+                message: 'studentId and newMentorId are required'
+            });
+        }
+
         // Deactivate current assignment
-        await prisma.counselorAssignment.updateMany({
+        await prisma.mentorAssignment.updateMany({
             where: {
                 studentId,
                 status: 'ACTIVE'
@@ -428,10 +313,10 @@ export const reassignStudent = async (req, res) => {
         });
 
         // Create new assignment
-        const newAssignment = await prisma.counselorAssignment.create({
+        const newAssignment = await prisma.mentorAssignment.create({
             data: {
                 studentId,
-                counselorId: newCounselorId,
+                mentorId: targetMentorId,
                 assignedBy: adminUserId,
                 status: 'ACTIVE'
             },
@@ -439,7 +324,7 @@ export const reassignStudent = async (req, res) => {
                 student: {
                     select: { name: true, studentId: true }
                 },
-                counselor: {
+                mentor: {
                     select: { name: true, email: true }
                 }
             }
@@ -469,25 +354,22 @@ export const getUserManagementStats = async (req, res) => {
     try {
         const [
             totalMentors,
-            totalCounselors,
             totalStudents,
             assignedStudents,
             totalUsers
         ] = await Promise.all([
             prisma.mentor.count(),
-            prisma.counselor.count(),
             prisma.student.count(),
-            prisma.counselorAssignment.count({ where: { status: 'ACTIVE' } }),
+            prisma.mentorAssignment.count({ where: { status: 'ACTIVE' } }),
             prisma.user.count({ where: { isActive: true } })
         ]);
 
-        const unassignedStudents = totalStudents - assignedStudents;
+        const unassignedStudents = Math.max(0, totalStudents - assignedStudents);
 
         res.status(200).json({
             success: true,
             data: {
                 totalMentors,
-                totalCounselors,
                 totalStudents,
                 assignedStudents,
                 unassignedStudents,
@@ -568,47 +450,6 @@ export const deleteUser = async (req, res) => {
                     });
                 }
                 await prisma.mentor.delete({ where: { id: mentor.id } });
-            }
-        } else if (user.role === 'COUNSELOR') {
-            const counselor = await prisma.counselor.findUnique({ where: { email: user.email } });
-            if (counselor) {
-                // Reassign counselor's students to other active counselors
-                const activeAssignments = await prisma.counselorAssignment.findMany({
-                    where: { counselorId: counselor.id, status: 'ACTIVE' }
-                });
-                const studentIds = activeAssignments.map(a => a.studentId);
-
-                if (studentIds.length > 0) {
-                    const otherCounselors = await prisma.counselor.findMany({
-                        where: { id: { not: counselor.id } },
-                        include: {
-                            assignedStudents: { where: { status: 'ACTIVE' } }
-                        }
-                    });
-
-                    const eligibleCounselors = otherCounselors.filter(c => c.assignedStudents.length < c.maxStudents);
-                    const targetPool = eligibleCounselors.length > 0 ? eligibleCounselors : otherCounselors;
-
-                    if (targetPool.length > 0) {
-                        for (let i = 0; i < studentIds.length; i++) {
-                            const targetCounselor = targetPool[i % targetPool.length];
-                            await prisma.counselorAssignment.create({
-                                data: {
-                                    studentId: studentIds[i],
-                                    counselorId: targetCounselor.id,
-                                    assignedBy: req.user.id,
-                                    status: 'ACTIVE'
-                                }
-                            });
-                        }
-                    }
-
-                    await prisma.counselorAssignment.updateMany({
-                        where: { counselorId: counselor.id },
-                        data: { status: 'DELETED' }
-                    });
-                }
-                await prisma.counselor.delete({ where: { id: counselor.id } });
             }
         }
 
@@ -694,4 +535,3 @@ export const resetUserPassword = async (req, res) => {
         });
     }
 };
-

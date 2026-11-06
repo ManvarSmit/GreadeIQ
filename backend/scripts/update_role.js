@@ -9,7 +9,7 @@ const updateRole = async () => {
 
   if (!email || !newRole) {
     console.log('Usage: node scripts/update_role.js <email> <role>');
-    console.log('Roles: ADMIN, MENTOR, COUNSELOR');
+    console.log('Roles: ADMIN, MENTOR');
     process.exit(1);
   }
 

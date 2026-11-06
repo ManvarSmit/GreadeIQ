@@ -15,7 +15,7 @@ const router = express.Router();
 
 router.use(authenticate);
 
-// Counselor/Admin routes
+// Mentor/Admin routes
 router.post('/create', createQuiz);
 router.get('/my-quizzes', getMyQuizzes);
 

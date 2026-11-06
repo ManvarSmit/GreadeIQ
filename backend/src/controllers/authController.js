@@ -30,7 +30,7 @@ export const createUser = async (req, res) => {
     }
 
     // Validate role
-    const validRoles = ['ADMIN', 'MENTOR', 'COUNSELOR'];
+    const validRoles = ['ADMIN', 'MENTOR'];
     if (role && !validRoles.includes(role)) {
       return res.status(400).json(errorResponse('Invalid role', 400));
     }
@@ -69,18 +69,8 @@ export const createUser = async (req, res) => {
       }
     });
 
-    // Auto-create Counselor or Mentor profile based on role
-    if (user.role === 'COUNSELOR') {
-      await prisma.counselor.create({
-        data: {
-          name: user.name,
-          email: user.email,
-          department: null,
-          maxStudents: 30 // Default capacity
-        }
-      });
-      logger.info(`Created Counselor profile for: ${user.email}`);
-    } else if (user.role === 'MENTOR') {
+    // Auto-create Mentor profile based on role
+    if (user.role === 'MENTOR') {
       await prisma.mentor.create({
         data: {
           name: user.name,
@@ -247,9 +237,6 @@ export const login = async (req, res) => {
     if (user.role === 'MENTOR') {
       const mentor = await prisma.mentor.findUnique({ where: { email: user.email } });
       if (mentor) profileData = { ...mentor, profileId: mentor.id };
-    } else if (user.role === 'COUNSELOR') {
-      const counselor = await prisma.counselor.findUnique({ where: { email: user.email } });
-      if (counselor) profileData = { ...counselor, profileId: counselor.id };
     }
 
     const responseUser = {
@@ -316,9 +303,6 @@ export const getMe = async (req, res) => {
     if (user.role === 'MENTOR') {
       const mentor = await prisma.mentor.findUnique({ where: { email: user.email } });
       if (mentor) profileData = { ...mentor, profileId: mentor.id };
-    } else if (user.role === 'COUNSELOR') {
-      const counselor = await prisma.counselor.findUnique({ where: { email: user.email } });
-      if (counselor) profileData = { ...counselor, profileId: counselor.id };
     }
 
     const responseUser = {

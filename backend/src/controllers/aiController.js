@@ -10,14 +10,14 @@ export const analyzeStudent = async (req, res) => {
     try {
         const { studentId } = req.params;
 
-        // Get student with counselor notes
+        // Get student with counseling notes
         const student = await prisma.student.findUnique({
             where: { id: studentId },
             select: {
                 id: true,
                 name: true,
                 studentId: true,
-                counselorNotes: true
+                counselingNotes: true
             }
         });
 
@@ -28,15 +28,15 @@ export const analyzeStudent = async (req, res) => {
             });
         }
 
-        if (!student.counselorNotes || student.counselorNotes.trim().length === 0) {
+        if (!student.counselingNotes || student.counselingNotes.trim().length === 0) {
             return res.status(400).json({
                 success: false,
-                message: 'No counselor notes available for analysis'
+                message: 'No mentorship or counseling notes available for analysis'
             });
         }
 
         // Analyze using Gemini
-        const analysis = await analyzeStudentProblems(student.counselorNotes);
+        const analysis = await analyzeStudentProblems(student.counselingNotes);
 
         // Update student with AI analysis
         const updatedStudent = await prisma.student.update({
@@ -88,7 +88,10 @@ export const suggestMentorsForStudent = async (req, res) => {
                 studentId: true,
                 problemCategories: true,
                 aiAnalysis: true,
-                aiAnalyzedAt: true
+                aiAnalyzedAt: true,
+                department: true,
+                dropoutRisk: true,
+                counselingNotes: true
             }
         });
 
@@ -136,9 +139,9 @@ export const suggestMentorsForStudent = async (req, res) => {
         // Get mentor suggestions
         const suggestions = await suggestMentors({
             problemCategories,
-            counselorNotes: student.aiAnalysis || '', // Using AI summary as notes proxy if raw notes unavailable here, or fetch notes if needed
-            department: 'Unknown', // Ideally fetch this
-            dropoutRisk: 'Unknown'
+            counselingNotes: student.counselingNotes || student.aiAnalysis || '',
+            department: student.department || 'Unknown',
+            dropoutRisk: student.dropoutRisk || 'Unknown'
         }, availableMentors);
 
         res.status(200).json({
@@ -210,9 +213,6 @@ export const autoAssignMentor = async (req, res) => {
         const student = await prisma.student.findUnique({
             where: { id: studentId },
             include: {
-                counselorAssignments: {
-                    where: { status: 'ACTIVE' }
-                },
                 mentorAssignments: {
                     where: { status: 'ACTIVE' }
                 }
@@ -226,10 +226,6 @@ export const autoAssignMentor = async (req, res) => {
         // 2. Eligibility Checks
         if (student.mentorAssignments && student.mentorAssignments.length > 0) {
             return res.status(400).json({ success: false, message: 'Student already has an active mentor' });
-        }
-
-        if (!student.counselorAssignments || student.counselorAssignments.length === 0) {
-            return res.status(400).json({ success: false, message: 'Student must be assigned to a counselor first' });
         }
 
         const riskLevel = (student.dropoutRisk || '').toUpperCase();
@@ -256,7 +252,7 @@ export const autoAssignMentor = async (req, res) => {
                 assignment,
                 mentorName: assignment.mentor.name,
                 mentorSpecialization: assignment.mentor.specialization,
-                assignmentReason: `Assigned based on ${student.counselorNotes ? 'AI analysis' : 'availability'}`
+                assignmentReason: `Assigned based on ${student.counselingNotes ? 'AI analysis' : 'availability'}`
             },
             message: `Successfully assigned to ${assignment.mentor.name}`
         });

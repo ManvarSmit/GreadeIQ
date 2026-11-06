@@ -22,24 +22,6 @@ async function checkProfiles() {
             console.log(`   - ${user.name} (${user.email}) - Role: ${user.role}`);
         });
 
-        // Check counselors
-        const counselors = await prisma.counselor.findMany({
-            select: {
-                id: true,
-                email: true,
-                name: true
-            }
-        });
-
-        console.log('\nCounselor Profiles:');
-        if (counselors.length === 0) {
-            console.log('   (none)');
-        } else {
-            counselors.forEach(c => {
-                console.log(`   - ${c.name} (${c.email})`);
-            });
-        }
-
         // Check mentors
         const mentors = await prisma.mentor.findMany({
             select: {
@@ -60,14 +42,6 @@ async function checkProfiles() {
 
         // Find users without profiles
         console.log('\n⚠️  Users without matching profiles:');
-
-        const counselorUsers = allUsers.filter(u => u.role === 'COUNSELOR');
-        for (const user of counselorUsers) {
-            const hasProfile = counselors.some(c => c.email === user.email);
-            if (!hasProfile) {
-                console.log(`   - COUNSELOR: ${user.name} (${user.email}) - MISSING PROFILE`);
-            }
-        }
 
         const mentorUsers = allUsers.filter(u => u.role === 'MENTOR');
         for (const user of mentorUsers) {

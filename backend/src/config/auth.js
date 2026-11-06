@@ -14,7 +14,6 @@ export const authConfig = {
   roles: {
     ADMIN: 'ADMIN',
     MENTOR: 'MENTOR',
-    COUNSELOR: 'COUNSELOR',
     STUDENT: 'STUDENT',
   },
 };

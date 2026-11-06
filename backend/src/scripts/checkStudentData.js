@@ -42,7 +42,7 @@ async function checkStudentData() {
         console.log(`📚 Unique semesters: ${uniqueSems.join(', ')}`);
 
         // Check assignments
-        const assignments = await prisma.counselorAssignment.findMany({
+        const assignments = await prisma.mentorAssignment.findMany({
             where: { status: 'ACTIVE' }
         });
         console.log(`\n✅ Students already assigned: ${assignments.length}`);

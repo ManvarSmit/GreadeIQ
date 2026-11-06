@@ -1,9 +1,7 @@
 import express from 'express';
 import {
     getAllMentors,
-    getAllCounselors,
-    assignStudentToCounselor,
-    assignMentorToCounselor,
+    assignStudentToMentor,
     bulkAssignStudents,
     reassignStudent,
     getUserManagementStats,
@@ -16,14 +14,11 @@ const router = express.Router();
 
 // All routes require ADMIN role
 router.get('/mentors', authenticate, authorizeRole('ADMIN'), getAllMentors);
-router.get('/counselors', authenticate, authorizeRole('ADMIN'), getAllCounselors);
-router.post('/assign/student-counselor', authenticate, authorizeRole('ADMIN'), assignStudentToCounselor);
-router.post('/assign/mentor-counselor', authenticate, authorizeRole('ADMIN'), assignMentorToCounselor);
+router.post('/assign/student-mentor', authenticate, authorizeRole('ADMIN'), assignStudentToMentor);
 router.post('/assign/bulk-students', authenticate, authorizeRole('ADMIN'), bulkAssignStudents);
 router.put('/reassign/student', authenticate, authorizeRole('ADMIN'), reassignStudent);
 router.get('/stats', authenticate, authorizeRole('ADMIN'), getUserManagementStats);
 router.delete('/users/:id', authenticate, authorizeRole('ADMIN'), deleteUser);
 router.post('/users/:id/reset-password', authenticate, authorizeRole('ADMIN'), resetUserPassword);
-
 
 export default router;

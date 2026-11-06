@@ -13,7 +13,17 @@ import {
  */
 export const createLog = async (req, res) => {
   try {
-    const { studentId, mentorId, notes, actionsTaken, followUpRequired, followUpDate } = req.body;
+    let { studentId, mentorId, notes, actionsTaken, followUpRequired, followUpDate } = req.body;
+    
+    // Auto-resolve mentorId from authenticated user if not explicitly provided
+    if (!mentorId && req.user && req.user.role === 'MENTOR') {
+      const mentor = await prisma.mentor.findUnique({
+        where: { email: req.user.email }
+      });
+      if (mentor) {
+        mentorId = mentor.id;
+      }
+    }
     
     const log = await createCounselingLog(
       studentId,
@@ -165,8 +175,10 @@ export const getCounselingQueue = async (req, res) => {
         studentId: true,
         name: true,
         department: true,
+        semester: true,
+        currentCGPA: true,
+        attendancePercent: true,
         dropoutRisk: true,
-        riskScore: true, // If we added this column, checking schema... no riskScore in schema, only riskReason
         riskReason: true,
         lastAssessment: true,
         _count: {
@@ -174,12 +186,9 @@ export const getCounselingQueue = async (req, res) => {
         }
       },
       orderBy: [
-        { dropoutRisk: 'asc' } // HIGH comes first
+        { dropoutRisk: 'asc' } // HIGH comes first alphabetically
       ]
     });
-    
-    // Sort manually to be safe or verify alphabetic.
-    // 'HIGH' < 'MEDIUM' (H < M). So asc puts HIGH first.
     
     res.status(200).json({
       success: true,
@@ -195,4 +204,3 @@ export const getCounselingQueue = async (req, res) => {
     });
   }
 };
-

@@ -89,7 +89,7 @@ export const getStudentAvailableQuizzes = async (req, res) => {
       return res.status(403).json(errorResponse('Only students can fetch available quizzes', 403));
     }
 
-    // Logic to fetch quizzes: could be global, or strictly assigned by counselor.
+    // Logic to fetch quizzes: could be global, or assigned by mentor.
     // For now, fetch all quizzes not completed by student.
     const completedAttempts = await prisma.quizAttempt.findMany({
       where: { studentId: req.user.userId, status: 'COMPLETED' },
