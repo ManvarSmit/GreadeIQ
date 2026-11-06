@@ -1,170 +1,293 @@
-# GreadeIQ - AI-Assisted Student Retention & College Portal
+# GreadeIQ – AI-Assisted Student Retention & College Portal
 
-GreadeIQ is a comprehensive, AI-assisted academic management platform designed to identify students at risk of dropping out, facilitate timely interventions, and run secure online assessments. By leveraging a rule-based Risk Engine for academic profiling and Generative AI (Gemini) for qualitative analysis, the system empowers educational institutions to improve student retention, support counseling workflows, and maintain exam integrity.
+GreadeIQ is a student monitoring and academic management platform designed to help colleges identify students who may be at risk of dropping out.
 
----
+The system analyzes academic performance, attendance, and other student-related factors to identify potential risks. It also uses Google Gemini AI to generate personalized improvement plans, assist with mentor assignments, and provide feedback on quiz performance.
 
-## 🚀 Key Features & Detailed UI Functionality
+The platform includes separate dashboards for administrators, faculty mentors, and students, with features for academic tracking, counseling, online assessments, and student performance monitoring.
 
-The platform is designed with role-based access control, providing tailored experiences for **Administrators**, **Counselors**, **Mentors**, and **Students**.
+## Key Features
 
-### 1. Administrator Dashboard (Command Center)
-The Command Center provides a system-wide overview and administrative controls.
-* **Global Filters & Actions**:
-  * **Semester Filter**: Dropdown to filter all insights by specific semesters (1-8).
-  * **Data Controls**: "Refresh Data" action button to fetch updated student logs.
-  * **Export Options**: "Export to CSV" (for student lists) and "Export to PDF" (for admin reports).
-* **Key Performance Indicators (KPIs)**:
-  * **Total Students**: Count of all enrolled students.
-  * **Departments**: Total number of academic departments.
-  * **High Risk**: Count of students identified by the Risk Engine as high risk.
-  * **Interventions**: Total number of active intervention tasks.
-  * **Avg CGPA & Avg Attendance**: System-wide average academic metrics.
-* **Visual Analytics**:
-  * **Risk Profile Chart**: Interactive Pie Chart displaying the distribution of High, Medium, and Low-risk students.
-  * **Risk Analysis by Department**: A detailed table listing departments, total students, risk breakdown (High/Medium), and the percentage of high-risk students per department.
-* **User Management & Provisioning**:
-  * **Create User Form**: Allows admins to provision new Mentors or Counselors with fields for Full Name, Email, Role, and Specialization (e.g., Academic Support, Mental Health, Financial Guidance).
-  * **User Management Section**: View, edit, and manage system access for all staff members.
+- Student dropout risk prediction based on academic performance and attendance.
+- AI-generated personalized improvement plans using Google Gemini.
+- Mentor assignment based on student requirements and faculty specialization.
+- Academic performance and attendance tracking.
+- Counseling session management and progress tracking.
+- Online quizzes with tab-switch and fullscreen monitoring.
+- AI-powered quiz performance analysis.
+- CSV and PDF report generation.
+- Role-based authentication and access control.
 
-### 2. Counselor Dashboard
-Designed for head counselors to oversee assigned student cohorts, log sessions, and manage assessment integrity.
-* **Dual-Tab Interface**: Toggle between "Overview" and "My Students".
-* **Overview Tab**:
-  * **Group Stats**: KPI cards showing Total Assigned Students, High Risk count, Average Attendance, and Average CGPA for their assigned cohort.
-  * **Quick Actions**: Shortcuts to "Schedule New Session" and "Find Student".
-  * **Today's Sessions**: A list of upcoming scheduled sessions with student names, time, risk level, and actions to "Complete" or "Cancel" the session.
-* **My Students Tab**:
-  * **Search & Filter**: Search bar to quickly locate students by name or ID.
-  * **Student Roster Table**: Displays Student Info, Risk Badge (High/Med/Low), Academic Performance metrics (Attendance %, CGPA), and a "View Profile" action button.
+## User Roles
 
-### 3. Mentor Dashboard (Mentorship Workspace)
-Tailored for direct student interaction and group tracking.
-* **Mentor Profile Header**: Displays the mentor's name and assigned specialization (e.g., General, Academic Support).
-* **Group Progress KPIs**:
-  * **My Group**: Total number of assigned mentees.
-  * **Attention Needed**: Count of high-risk students requiring immediate intervention.
-  * **Group Avg Attendance**: A visual progress bar depicting the average attendance of the assigned block.
-* **Assigned Students Grid**: Visual cards representing each assigned student, allowing quick access to their individual profiles.
+GreadeIQ supports three user roles:
 
-### 4. Detailed Student Profile View
-An exhaustive 360-degree view of an individual student's academic and behavioral profile.
-* **Profile Header**: Quick summary of the student, with actions to "Edit Student" (opens modal) or "Delete Student".
-* **Risk Analysis Card**: Detailed breakdown of the student's Risk Engine-calculated dropout risk, risk score, and primary risk factors (e.g., low attendance, critical CGPA, or active backlogs).
-* **Mentorship Card**: Displays the currently assigned Mentor/Counselor. Includes an "Auto-Assign Mentor" button powered by AI to match the student with the best-fit mentor based on their specific problems (via the Gemini AI API).
-* **Academic Charts**: Interactive visual graphs depicting historical CGPA, attendance trends, and assessment scores.
-* **AI Guidance Card**: Features a "Generate AI Plan" button. Uses Google's Gemini AI to analyze all student data points and output qualitative, actionable improvement plans and personalized advice.
-* **Counseling Timeline**: A historical log of all past counseling sessions, notes, actions taken, and risk status before/after sessions.
+| Role | Responsibilities |
+|---|---|
+| Admin | Manages students, mentors, departments, assignments, and institutional analytics. |
+| Mentor | Monitors assigned students, manages counseling sessions, updates academic records, and creates quizzes. |
+| Student | Views academic performance, accesses AI-generated guidance, checks counseling history, and attempts quizzes. |
 
-### 5. Secure Assessment & Anti-Cheating System
-* **Quiz Creator**: Allows counselors/admins to create topics, set duration, negative marking, difficulty, and quiz questions.
-* **Anti-Cheat Dashboard**: Tracks exam integrity dynamically:
-  * **Tab Switch Detection**: Auto-logs tab switches.
-  * **Blur/Focus Tracking**: Logs user leaving the quiz viewport.
-  * **Auto-Submit & Abort**: Triggers submission/aborts when violation thresholds are breached.
-  * Detailed violation logs for review by counselors/admins.
+## Main Modules
 
-### 6. Advanced Analytics, Reports, & Data Management
-* **Advanced Analytics Page**: Deep-dive charts for institutional data analysis (accessible via the "Full Report" link on the Admin Dashboard).
-* **Data Management (Bulk Upload)**: Admins can upload CSV files containing legacy student data for batch processing.
-* **Reporting**: Generate and download customized PDF reports for institutional record-keeping.
+### 1. Admin Dashboard
 
----
+The admin dashboard provides an overview of student performance and institutional activities.
 
-## 💻 Tech Stack
+**Features:**
+- Dashboard statistics, including total students, departments, high-risk students, and active interventions.
+- Filter academic data by semester.
+- View average CGPA and attendance.
+- Visualize student risk distribution using charts.
+- Analyze student risk levels department-wise.
+- Export student records to CSV and institutional reports to PDF.
+- Create mentor and admin accounts with temporary login credentials.
+- Manage faculty mentors and monitor their assigned student capacity.
+- Assign students to mentors manually or with AI assistance.
+
+### 2. Mentor Dashboard
+
+The mentor dashboard helps faculty members manage their assigned students and academic activities.
+
+**Features:**
+- View assigned students with a maximum capacity of 30 students.
+- Monitor group attendance, average CGPA, and high-risk students.
+- Search and filter students by name, ID, or risk level.
+- Schedule and manage individual counseling sessions.
+- Record meeting notes and create student action plans.
+- Maintain counseling history.
+- Update student marks and attendance.
+- Create timed quizzes with custom questions, difficulty levels, and negative marking.
+- Review quiz attempts and proctoring violation logs.
+
+### 3. Student Portal
+
+The student portal provides access to academic information and personalized guidance.
+
+**Features:**
+- View current CGPA, attendance percentage, and academic standing.
+- Track semester-wise CGPA and monthly attendance trends.
+- Get personalized improvement plans generated by Gemini AI.
+- Access recommended study resources and academic suggestions.
+- View previous counseling sessions and assigned action plans.
+- Browse and attempt published quizzes.
+- Receive AI-generated feedback after quiz submission.
+
+**Quiz Monitoring:**
+- Detect tab switching and window focus changes.
+- Monitor fullscreen exit events.
+- Record proctoring violations.
+- Automatically submit quizzes when the violation limit is exceeded.
+
+**AI Quiz Analysis:**
+
+After quiz submission, Gemini AI analyzes incorrect answers and provides:
+
+- Strengths: Topics the student understands.
+- Weak Areas: Concepts that need improvement.
+- Recommendations: Suggested revision steps and learning resources.
+
+### 4. Student Profile & Risk Analysis
+
+Admins and mentors can access a detailed student profile to understand academic progress and potential risks.
+
+**Features:**
+- View student academic and personal information.
+- Display the calculated risk score (0–100).
+- Identify factors contributing to dropout risk.
+- View CGPA, attendance, and assessment trends.
+- Assign mentors based on student requirements.
+- View complete counseling history and action plans.
+
+## AI Integration
+
+GreadeIQ uses two main components for student risk analysis and AI-assisted recommendations.
+
+### 1. Predictive Risk Engine
+
+The risk engine analyzes student academic data and calculates a risk score between 0 and 100.
+
+It considers:
+
+- Attendance trends over recent periods.
+- Sudden drops in academic performance.
+- Consecutive absence patterns.
+- Missed examination windows.
+- CGPA and examination failures.
+- Disciplinary records.
+
+Based on the calculated score, students are categorized into three risk levels:
+
+- `HIGH`
+- `MEDIUM`
+- `LOW`
+
+The engine also identifies specific factors contributing to a student's risk level.
+
+### 2. Google Gemini AI
+
+GreadeIQ integrates Google Gemini 2.5 Flash for qualitative analysis and personalized recommendations.
+
+AI-powered features include:
+
+- **Counseling Note Analysis:** Identifies underlying student problems such as academic difficulties, financial problems, family issues, mental health concerns, and career confusion.
+- **Mentor Matching:** Analyzes student requirements and matches them with suitable faculty mentors based on specialization and workload.
+- **Personalized Improvement Plans:** Generates recommendations covering academic improvement, study habits, mentor guidance, and learning resources.
+- **Quiz Performance Analysis:** Examines incorrect answers to identify conceptual gaps and suggest areas for revision.
+
+## Technology Stack
 
 ### Frontend
-* **Framework**: React + Vite (Type: Module)
-* **Styling & UI**: Tailwind CSS, Vanilla CSS, Lucide React (Icons)
-* **Routing**: React Router
-* **Data Visualization**: Recharts
-* **HTTP Client**: Axios
+- React 19
+- Vite
+- Tailwind CSS
+- React Router v6
+- Recharts
+- Framer Motion
+- Lucide React
+- Axios
 
 ### Backend
-* **Runtime**: Node.js (Type: Module)
-* **Framework**: Express.js
-* **Database ORM**: Prisma
-* **Database**: PostgreSQL
-* **Authentication**: JSON Web Tokens (JWT), bcryptjs
-* **AI Integration**: `@google/generative-ai` (Gemini API)
-* **File Handling & Reports**: Multer, CSV-Parser, Fast-CSV, PDFKit
-* **Logging**: Winston
+- Node.js
+- Express.js
+- Prisma ORM v5
+- PostgreSQL
+- JSON Web Tokens (JWT)
+- bcryptjs
+- Google Gemini 2.5 Flash API
+- Multer
+- CSV-Parser
+- Fast-CSV
+- PDFKit
+- Nodemailer
+- Winston
 
----
+### Database & Deployment
+- PostgreSQL (Neon)
+- Vercel (Frontend)
+- Render (Backend)
 
-## 🗄️ Core Data Models (Prisma Schema)
+## Database Structure
 
-* **User**: Staff credentials & system roles (`ADMIN`, `MENTOR`, `COUNSELOR`).
-* **Student**: Core profiles with academic, socioeconomic, and behavioral metrics.
-* **Attendance / Assessment / CourseAttempt / FeeRecord**: Academic and financial tracking.
-* **Counselor / Mentor**: Staff profiles and assignments.
-* **InterventionTask / CounselingLog**: Action tracking and qualitative records.
-* **Quiz / QuizQuestion / QuizAttempt / ViolationLog**: Assessment engine and security logging.
-* **Alert**: System-generated notifications based on risk assessments.
+The project uses Prisma ORM with PostgreSQL.
 
----
+The main data models include:
 
-## 🛠️ Installation & Setup
+| Model | Purpose |
+|---|---|
+| User | Admin and mentor authentication and role management. |
+| Student | Student profiles and academic information. |
+| Mentor | Faculty information, specializations, and allocations. |
+| MentorAssignment | Student-to-mentor assignments. |
+| Attendance | Student attendance records. |
+| Assessment | Academic assessments and marks. |
+| CourseAttempt | Student examination attempts. |
+| FeeRecord | Student fee-related records. |
+| InterventionTask | Student intervention activities. |
+| CounselingLog | Counseling sessions, notes, and action plans. |
+| Quiz | Quiz information and configuration. |
+| QuizQuestion | Questions associated with quizzes. |
+| QuizAttempt | Student quiz submissions and results. |
+| ViolationLog | Records of quiz monitoring violations. |
+| Alert | Notifications generated by the risk engine. |
+
+## Installation & Setup
 
 ### Prerequisites
-* [Node.js](https://nodejs.org/) (v18.x or higher)
-* [PostgreSQL](https://www.postgresql.org/) (v14.x or higher)
-* Google Gemini API Key
 
-### 1. Clone the repository
+- Node.js v18 or higher
+- PostgreSQL v14 or higher (or a Neon PostgreSQL database)
+- Google Gemini API Key from [Google AI Studio](https://aistudio.google.com/)
+
+### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/ManvarSmit/GreadeIQ.git
 cd GreadeIQ
 ```
 
 ### 2. Backend Setup
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Install backend dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a `.env` file by copying `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
-4. Set the environment variables in `.env`:
-   ```env
-   PORT=5000
-   DATABASE_URL="postgresql://username:password@localhost:5432/greadeiq?schema=public"
-   JWT_SECRET="your_jwt_secret_key"
-   GEMINI_API_KEY="your_gemini_api_key"
-   ```
-5. Run database migrations:
-   ```bash
-   npx prisma migrate dev --name init
-   ```
-6. Seed the database with sample data:
-   ```bash
-   npm run seed
-   ```
-7. Start the development server:
-   ```bash
-   npm run dev
-   ```
+
+Navigate to the backend directory:
+
+```bash
+cd backend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env` file using the example configuration:
+
+```bash
+cp .env.example .env
+```
+
+Configure the environment variables in `backend/.env`:
+
+```env
+PORT=5000
+DATABASE_URL="postgresql://username:password@localhost:5432/greadeiq?schema=public"
+JWT_SECRET="your_jwt_secret_key"
+GEMINI_API_KEY="your_gemini_api_key"
+
+# SMTP Configuration
+SMTP_HOST="smtp.ethereal.email"
+SMTP_PORT=587
+SMTP_USER="your_smtp_user"
+SMTP_PASS="your_smtp_password"
+SMTP_FROM='"GreadeIQ System" <admin@greadeiq.edu>'
+
+FRONTEND_URL="http://localhost:5173"
+```
+
+Run database migrations:
+
+```bash
+npx prisma migrate dev --name init
+```
+
+Seed the database with sample data:
+
+```bash
+npm run seed
+```
+
+Start the backend server:
+
+```bash
+npm run dev
+```
 
 ### 3. Frontend Setup
-1. Navigate to the frontend directory:
-   ```bash
-   cd ../frontend
-   ```
-2. Install frontend dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
 
----
+Open another terminal and navigate to the frontend directory:
 
-## 📄 License
-ISC License
+```bash
+cd frontend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open the application at:
+
+```text
+http://localhost:5173
+```
+
+## License
+
+This project is licensed under the ISC License.
