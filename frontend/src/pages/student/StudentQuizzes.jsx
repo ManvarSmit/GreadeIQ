@@ -60,7 +60,7 @@ const StudentQuizzes = () => {
               <BookOpen size={32} />
             </div>
             <h3 className="text-xl font-bold text-white mb-2 tracking-wide">No Quizzes Available</h3>
-            <p className="text-dark-muted max-w-md">You're all caught up! Check back later for new assignments from your counselors.</p>
+            <p className="text-dark-muted max-w-md">You're all caught up! Check back later for new assignments from your mentors.</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

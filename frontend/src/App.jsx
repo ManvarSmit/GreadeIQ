@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider } from './contexts/AuthContext';
@@ -15,10 +14,9 @@ import AdminDashboard from './pages/AdminDashboard';
 import DataManagement from './pages/DataManagement';
 import Reports from './pages/Reports';
 import MentorDashboard from './pages/MentorDashboard';
-import CounselorDashboard from './pages/CounselorDashboard';
-import CounselorAnalytics from './pages/CounselorAnalytics';
-import CounselorDataManagement from './pages/CounselorDataManagement';
-import CounselorQuizzes from './pages/CounselorQuizzes';
+import MentorAnalytics from './pages/MentorAnalytics';
+import AcademicDataManagement from './pages/AcademicDataManagement';
+import AcademicQuizzes from './pages/AcademicQuizzes';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentQuizzes from './pages/student/StudentQuizzes';
 import QuizAttemptUI from './pages/student/QuizAttemptUI';
@@ -101,31 +99,34 @@ function App() {
                   <Reports />
                 </PageTransition>
               } />
+              
+              {/* Mentor Routes */}
               <Route path="/mentor/my-students" element={
                 <PageTransition>
                   <MentorDashboard />
                 </PageTransition>
               } />
-              <Route path="/counseling/queue" element={
+              <Route path="/mentor/analytics" element={
                 <PageTransition>
-                  <CounselorDashboard />
+                  <MentorAnalytics />
                 </PageTransition>
               } />
-              <Route path="/counseling/analytics" element={
+              <Route path="/academic/data" element={
                 <PageTransition>
-                  <CounselorAnalytics />
+                  <AcademicDataManagement />
                 </PageTransition>
               } />
-              <Route path="/counseling/data" element={
+              <Route path="/academic/quizzes" element={
                 <PageTransition>
-                  <CounselorDataManagement />
+                  <AcademicQuizzes />
                 </PageTransition>
               } />
-              <Route path="/counseling/quizzes" element={
-                <PageTransition>
-                  <CounselorQuizzes />
-                </PageTransition>
-              } />
+
+              {/* Seamless redirects for legacy counseling URLs */}
+              <Route path="/counseling/queue" element={<Navigate to="/mentor/my-students" replace />} />
+              <Route path="/counseling/analytics" element={<Navigate to="/mentor/analytics" replace />} />
+              <Route path="/counseling/data" element={<Navigate to="/academic/data" replace />} />
+              <Route path="/counseling/quizzes" element={<Navigate to="/academic/quizzes" replace />} />
 
               {/* Student Routes */}
               <Route path="/student/dashboard" element={
@@ -141,7 +142,7 @@ function App() {
 
               {/* Admin dashboard - restricted */}
               <Route path="/admin" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['ADMIN']}>
                   <PageTransition>
                     <AdminDashboard />
                   </PageTransition>

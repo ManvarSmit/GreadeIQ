@@ -17,7 +17,7 @@ const WelcomeBanner = () => {
         else if (hour < 18) setGreeting('Good Afternoon');
         else setGreeting('Good Evening');
 
-        // Fetch high-risk alerts count dynamically if user is admin/mentor/counselor
+        // Fetch high-risk alerts count dynamically if user is admin or mentor
         if (user && user.role !== 'STUDENT') {
             const fetchStats = async () => {
                 try {

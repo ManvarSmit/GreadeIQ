@@ -112,7 +112,7 @@ const StudentProfile = () => {
 
   if (!student) return <PageWrapper>Student not found</PageWrapper>;
 
-  const canLogCounseling = user?.role === 'COUNSELOR' || user?.role === 'MENTOR' || user?.role === 'ADMIN';
+  const canLogCounseling = user?.role === 'MENTOR' || user?.role === 'ADMIN';
 
   return (
     <PageWrapper

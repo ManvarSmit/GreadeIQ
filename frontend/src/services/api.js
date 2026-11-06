@@ -3,8 +3,6 @@ import axios from 'axios';
 // Use environment variable with fallback
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-
-
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -110,8 +108,8 @@ export const riskAPI = {
 // ==================== ACADEMIC ENDPOINTS ====================
 export const academicAPI = {
   recordAttendance: (data) => api.post('/academic/attendance', data),
-  recordMarks: (data) => api.post('/academic/marks', data),
-  getStudentAcademics: (id) => api.get(`/academic/student/${id}`),
+  recordMarks: (data) => api.post('/academic/assessment', data),
+  getStudentAcademics: (id) => api.get(`/academic/profile/${id}`),
   uploadAssessmentsCSV: (formData) => api.post('/academic/assessments/upload/csv', formData, {
     headers: { 'Content-Type': undefined }
   }),
@@ -147,26 +145,16 @@ export const interventionAPI = {
 // ==================== MENTOR ENDPOINTS ====================
 export const mentorAPI = {
   getMyStudents: () => api.get('/mentor/my-students'),
-  getMyCounselors: () => api.get('/mentor/my-counselors'),
-  getStudentsByCounselor: (counselorId) => api.get(`/mentor/counselor/${counselorId}/students`),
-  getCounselorStats: () => api.get('/mentor/counselor-stats'),
+  getMyStats: () => api.get('/mentor/stats'),
+  updateStudentDetails: (id, data) => api.put(`/mentor/student/${id}/details`, data),
   updateStudentMarks: (id, data) => api.post(`/mentor/student/${id}/marks`, data),
   updateStudentAttendance: (id, data) => api.post(`/mentor/student/${id}/attendance`, data),
-};
-
-// ==================== COUNSELOR ENDPOINTS ====================
-export const counselorAPI = {
-  getMyStudents: () => api.get('/counselor/my-students'),
-  updateStudentDetails: (id, data) => api.put(`/counselor/student/${id}/details`, data),
-  getMyStats: () => api.get('/counselor/stats'),
 };
 
 // ==================== ADMIN ENDPOINTS ====================
 export const adminAPI = {
   getAllMentors: () => api.get('/admin/mentors'),
-  getAllCounselors: () => api.get('/admin/counselors'),
-  assignStudentToCounselor: (data) => api.post('/admin/assign/student-counselor', data),
-  assignMentorToCounselor: (data) => api.post('/admin/assign/mentor-counselor', data),
+  assignStudentToMentor: (data) => api.post('/admin/assign/student-mentor', data),
   bulkAssignStudents: (data) => api.post('/admin/assign/bulk-students', data),
   reassignStudent: (data) => api.put('/admin/reassign/student', data),
   getUserManagementStats: () => api.get('/admin/stats'),
@@ -174,7 +162,7 @@ export const adminAPI = {
   resetUserPassword: (userId) => api.post(`/admin/users/${userId}/reset-password`),
 };
 
-// ==================== COUNSELING ENDPOINTS ====================
+// ==================== COUNSELING & MEETING ENDPOINTS ====================
 export const counselingAPI = {
   getQueue: () => api.get('/counseling/queue'),
   createLog: (data) => api.post('/counseling/create', data),

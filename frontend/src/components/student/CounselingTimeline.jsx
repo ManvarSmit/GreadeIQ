@@ -42,7 +42,7 @@ const CounselingTimeline = ({ history }) => {
                                     {formatDateSafe(session.sessionDate || session.date || session.createdAt)}
                                 </span>
                                 <span className="px-2 py-0.5 rounded-full bg-indigo-950/60 border border-indigo-800/40 text-xs font-semibold text-indigo-300">
-                                    {session.counselorName || session.mentorName || 'Counselor Session'}
+                                    {session.mentorName || 'Mentoring Session'}
                                 </span>
                                 {session.actionsTaken && (
                                     <span className="px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-800/40 text-xs font-semibold text-emerald-300">

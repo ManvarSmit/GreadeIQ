@@ -66,7 +66,7 @@ const StudentDashboard = () => {
             <div>
               <h4 className="text-white font-bold text-base">High Risk Status Alert</h4>
               <p className="text-sm text-dark-muted mt-1">
-                Your current attendance (<span className="text-white font-semibold">{attendance}%</span>) or academic score (<span className="text-white font-semibold">{cgpa} CGPA</span>) requires attention. Please meet your mentor or counselor for guidance.
+                Your current attendance (<span className="text-white font-semibold">{attendance}%</span>) or academic score (<span className="text-white font-semibold">{cgpa} CGPA</span>) requires attention. Please meet your assigned mentor for guidance.
               </p>
             </div>
           </div>

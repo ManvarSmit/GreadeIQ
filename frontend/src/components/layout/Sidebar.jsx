@@ -18,29 +18,26 @@ import {
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { user, logout } = useAuth(); // Added logout
+  const { user, logout } = useAuth();
 
   const role = user?.role || 'GUEST';
 
-  // Define menus per role
+  // Define menus per role (ADMIN, MENTOR, STUDENT)
   const allMenuItems = [
     // Common / Admin
     { path: '/', icon: LayoutDashboard, label: 'Overview', roles: ['ADMIN'] },
 
     // Mentor Specific
-    { path: '/mentor/my-students', icon: BookOpen, label: 'My Students', roles: ['MENTOR'] },
-    { path: '/counseling/data', icon: Database, label: 'Record Marks & Attendance', roles: ['MENTOR'] },
-    { path: '/counseling/quizzes', icon: ClipboardList, label: 'Academic Quizzes', roles: ['MENTOR'] },
-
-    // Counselor Specific
-    { path: '/counseling/queue', icon: ClipboardList, label: 'Counseling Queue', roles: ['COUNSELOR'] },
-    { path: '/counseling/analytics', icon: BarChart3, label: 'My Analytics', roles: ['COUNSELOR'] },
+    { path: '/mentor/my-students', icon: BookOpen, label: 'Mentorship Workspace', roles: ['MENTOR'] },
+    { path: '/mentor/analytics', icon: BarChart3, label: 'Cohort Analytics', roles: ['MENTOR'] },
+    { path: '/academic/data', icon: Database, label: 'Record Marks & Attendance', roles: ['MENTOR'] },
+    { path: '/academic/quizzes', icon: ClipboardList, label: 'Academic Quizzes', roles: ['MENTOR'] },
 
     // Student Specific
     { path: '/student/dashboard', icon: LayoutDashboard, label: 'My Dashboard', roles: ['STUDENT'] },
     { path: '/student/quizzes', icon: BookOpen, label: 'My Quizzes', roles: ['STUDENT'] },
 
-    // General Students List (Admin and Mentor only - Counselors see only assigned students)
+    // General Students List
     { path: '/students', icon: Users, label: 'Student Directory', roles: ['ADMIN', 'MENTOR'] },
 
     // Admin / Advanced

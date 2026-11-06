@@ -2,18 +2,17 @@ import { useState, useEffect } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
-import { counselorAPI } from '../services/api';
+import { mentorAPI } from '../services/api';
 import {
-    BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
+    BarChart, Bar, PieChart, Pie, Cell,
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import {
-    TrendingUp, AlertTriangle, Users, Award, BookOpen, Target, Search
+    AlertTriangle, Users, Award, BookOpen, Target
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const CounselorAnalytics = () => {
+const MentorAnalytics = () => {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -24,7 +23,7 @@ const CounselorAnalytics = () => {
     const fetchMyStudents = async () => {
         try {
             setLoading(true);
-            const response = await counselorAPI.getMyStudents();
+            const response = await mentorAPI.getMyStudents();
             setStudents(response.data || []);
         } catch (error) {
             console.error('Error fetching students:', error);
@@ -35,7 +34,7 @@ const CounselorAnalytics = () => {
 
     if (loading) {
         return (
-            <PageWrapper title="My Students Analytics">
+            <PageWrapper title="Mentee Cohort Analytics">
                 <div className="flex items-center justify-center h-96">
                     <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
                 </div>
@@ -62,9 +61,9 @@ const CounselorAnalytics = () => {
 
     // Risk distribution pie chart data
     const riskData = [
-        { name: 'Low Risk', value: lowRisk, color: '#10B981' }, // Emerald-500
-        { name: 'Medium Risk', value: mediumRisk, color: '#F59E0B' }, // Amber-500
-        { name: 'High Risk', value: highRisk, color: '#EF4444' }, // Rose-500
+        { name: 'Low Risk', value: lowRisk, color: '#10B981' },
+        { name: 'Medium Risk', value: mediumRisk, color: '#F59E0B' },
+        { name: 'High Risk', value: highRisk, color: '#EF4444' },
     ].filter(item => item.value > 0);
 
     // Performance categories
@@ -85,7 +84,7 @@ const CounselorAnalytics = () => {
 
     const statsCards = [
         {
-            title: 'Assigned Students',
+            title: 'Assigned Mentees',
             value: totalStudents,
             icon: Users,
             color: 'text-indigo-600',
@@ -122,7 +121,7 @@ const CounselorAnalytics = () => {
     ];
 
     return (
-        <PageWrapper title="My Students Analytics" subtitle="Performance overview of your assigned students">
+        <PageWrapper title="Mentee Cohort Analytics" subtitle="Academic performance & risk metrics for your assigned mentees">
             {totalStudents === 0 ? (
                 <Card className="animate-fade-in">
                     <div className="text-center py-16">
@@ -130,7 +129,7 @@ const CounselorAnalytics = () => {
                             <Users size={48} className="text-slate-400" />
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2">No Students Assigned</h3>
-                        <p className="text-secondary-500 max-w-md mx-auto">You don't have any students assigned to you yet. Contact the administrator to get started.</p>
+                        <p className="text-secondary-500 max-w-md mx-auto">You do not have any mentees assigned to you yet. Contact the administrator to get students assigned.</p>
                     </div>
                 </Card>
             ) : (
@@ -306,7 +305,7 @@ const CounselorAnalytics = () => {
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-white">Priority Attention Required</h3>
-                                            <p className="text-sm text-dark-muted">These students are flagged as High Risk</p>
+                                            <p className="text-sm text-dark-muted">Mentees flagged as High Dropout Risk</p>
                                         </div>
                                     </div>
                                     <span className="px-3 py-1 bg-danger-500/10 text-danger-400 text-sm font-bold rounded-full shadow-md border border-danger-500/20">
@@ -362,4 +361,4 @@ const CounselorAnalytics = () => {
     );
 };
 
-export default CounselorAnalytics;
+export default MentorAnalytics;

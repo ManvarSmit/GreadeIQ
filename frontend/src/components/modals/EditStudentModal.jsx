@@ -32,7 +32,7 @@ const EditStudentModal = ({ isOpen, onClose, onSuccess, student }) => {
         libraryVisits: '',
         extracurricular: false,
         disciplinaryIssues: '',
-        counselorNotes: '',
+        counselingNotes: '',
     });
 
     const [errors, setErrors] = useState({});
@@ -40,6 +40,7 @@ const EditStudentModal = ({ isOpen, onClose, onSuccess, student }) => {
     // Pre-fill form when student data is available
     useEffect(() => {
         if (student && isOpen) {
+            const notes = student.counselingNotes || '';
             setFormData({
                 studentId: student.studentId || '',
                 name: student.name || '',
@@ -57,16 +58,17 @@ const EditStudentModal = ({ isOpen, onClose, onSuccess, student }) => {
                 libraryVisits: student.libraryVisits?.toString() || '',
                 extracurricular: student.extracurricular || false,
                 disciplinaryIssues: student.disciplinaryIssues?.toString() || '',
-                counselorNotes: student.counselorNotes || '',
+                counselingNotes: notes,
             });
         }
     }, [student, isOpen]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+        const val = type === 'checkbox' ? checked : value;
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: val
         }));
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
@@ -108,6 +110,8 @@ const EditStudentModal = ({ isOpen, onClose, onSuccess, student }) => {
         try {
             setLoading(true);
 
+            const notes = (formData.counselingNotes || '').trim() || null;
+
             const studentData = {
                 studentId: formData.studentId.trim(),
                 name: formData.name.trim(),
@@ -125,7 +129,7 @@ const EditStudentModal = ({ isOpen, onClose, onSuccess, student }) => {
                 libraryVisits: formData.libraryVisits ? parseInt(formData.libraryVisits) : 0,
                 extracurricular: formData.extracurricular,
                 disciplinaryIssues: formData.disciplinaryIssues ? parseInt(formData.disciplinaryIssues) : 0,
-                counselorNotes: formData.counselorNotes.trim() || null,
+                counselingNotes: notes,
             };
 
             await studentAPI.update(student.id, studentData);
@@ -420,21 +424,21 @@ const EditStudentModal = ({ isOpen, onClose, onSuccess, student }) => {
                                     </div>
                                 </div>
 
-                                {/* Counselor Notes */}
+                                {/* Mentoring & Counseling Notes */}
                                 <div className="mt-4">
                                     <label className="block text-sm font-medium text-dark-muted mb-1">
-                                        Personal/Family Issues & Notes
+                                        Personal/Family Issues & Guidance Notes
                                     </label>
                                     <textarea
-                                        name="counselorNotes"
-                                        value={formData.counselorNotes}
+                                        name="counselingNotes"
+                                        value={formData.counselingNotes || ''}
                                         onChange={handleChange}
                                         rows="6"
                                         placeholder="Document any family problems, financial issues, bereavement, health concerns, or other important context (e.g., 'Father passed away in Jan 2024, family facing financial difficulties')..."
                                         className={`${inputNormal} resize-y min-h-[100px]`}
                                     />
                                     <p className="text-xs text-dark-muted mt-1">
-                                        This information helps counselors provide appropriate support and understand student circumstances.
+                                        This information helps mentors provide appropriate academic guidance, counseling, and holistic support.
                                     </p>
                                 </div>
                             </div>

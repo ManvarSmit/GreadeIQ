@@ -67,9 +67,6 @@ const Login = () => {
           case 'MENTOR':
             navigate('/mentor/my-students');
             break;
-          case 'COUNSELOR':
-            navigate('/counseling/queue');
-            break;
           case 'STUDENT':
             navigate('/student/dashboard');
             break;
@@ -215,13 +212,6 @@ const Login = () => {
                     className="px-2 py-0.5 rounded bg-dark-bg/60 hover:bg-dark-bg text-dark-muted hover:text-white border border-dark-border hover:border-primary-500/40 transition-colors cursor-pointer"
                   >
                     Mentor
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleFillCredentials('counselor@university.edu', 'counselor123', 'Counselor')}
-                    className="px-2 py-0.5 rounded bg-dark-bg/60 hover:bg-dark-bg text-dark-muted hover:text-white border border-dark-border hover:border-primary-500/40 transition-colors cursor-pointer"
-                  >
-                    Counselor
                   </button>
                   <button
                     type="button"

@@ -2,7 +2,7 @@ import PageWrapper from '../components/layout/PageWrapper';
 import WelcomeBanner from '../components/dashboard/WelcomeBanner';
 import QuizCreator from '../components/quiz/QuizCreator';
 
-const CounselorQuizzes = () => {
+const AcademicQuizzes = () => {
     return (
         <PageWrapper>
             <div className="animate-slide-in">
@@ -21,4 +21,4 @@ const CounselorQuizzes = () => {
     );
 };
 
-export default CounselorQuizzes;
+export default AcademicQuizzes;
